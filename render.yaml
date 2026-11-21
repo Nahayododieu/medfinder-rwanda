@@ -1,6 +1,8 @@
 # Render blueprint for MedFinder Rwanda (https://render.com/docs/blueprint-spec)
 # Values marked "sync: false" are secrets or personal details: Render asks for them when
 # the blueprint is created, so they are never stored in this repository.
+# Add later in Render > Environment when available: DJANGO_ALLOWED_HOSTS (own domain),
+# BUSINESS_RDB_NUMBER, AT_API_KEY, MOMO_SUBSCRIPTION_KEY, MOMO_API_USER, MOMO_API_KEY.
 services:
   - type: web
     name: medfinder-rwanda
@@ -18,11 +20,6 @@ services:
         value: "False"
       - key: DJANGO_SECRET_KEY
         generateValue: true
-      # Your own domain later, e.g. medfinder.rw,www.medfinder.rw (the onrender.com address is added automatically)
-      - key: DJANGO_ALLOWED_HOSTS
-        sync: false
-      - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        sync: false
       - key: DATABASE_URL
         sync: false
       # Email (Gmail app password)
@@ -45,8 +42,6 @@ services:
         sync: false
       - key: BUSINESS_FOUNDER
         sync: false
-      - key: BUSINESS_RDB_NUMBER
-        sync: false
       - key: SUPPORT_PHONE
         sync: false
       - key: SUPPORT_EMAIL
@@ -64,18 +59,10 @@ services:
         value: "0.03"
       - key: HIDE_UNPAID_PHARMACIES
         value: "True"
-      # SMS / USSD (Africa's Talking) and MoMo: leave empty for simulation mode
+      # SMS / USSD (Africa's Talking) and MoMo: simulation mode until the API keys are added
       - key: AT_USERNAME
         value: sandbox
-      - key: AT_API_KEY
-        sync: false
       - key: MOMO_TARGET_ENVIRONMENT
         value: sandbox
       - key: MOMO_CURRENCY
         value: EUR
-      - key: MOMO_SUBSCRIPTION_KEY
-        sync: false
-      - key: MOMO_API_USER
-        sync: false
-      - key: MOMO_API_KEY
-        sync: false
