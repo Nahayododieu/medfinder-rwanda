@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ T.my_title }} · MedFinder Rwanda{% endblock %}
+{% block content %}
+<div class="narrow page" style="max-width:520px">
+  <div class="page-head"><div>
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.nav_my }}</span>
+    <h1>{{ T.my_title }}</h1>
+    <p>{{ T.my_copy }}</p>
+  </div></div>
+  <div class="card">
+    {% if step == 'phone' %}
+    <form method="post" class="stack">
+      {% csrf_token %}
+      <div class="field">
+        <label for="my-phone">{{ T.your_phone }}</label>
+        <input type="tel" id="my-phone" name="phone" value="{{ form.phone.value|default:'' }}" placeholder="07…" autocomplete="tel" inputmode="tel" maxlength="20" required autofocus>
+        {% for e in form.phone.errors %}<div class="err">{{ e }}</div>{% endfor %}
+      </div>
+      <button class="btn btn-block" type="submit">{{ T.my_send_code }}</button>
+    </form>
+    {% else %}
+    <p class="small">{{ T.my_code_sent }} <strong>{{ phone }}</strong>.</p>
+    <form method="post" class="stack">
+      {% csrf_token %}
+      <div class="field">
+        <label for="my-code">{{ T.my_code_label }}</label>
+        <input type="text" id="my-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="\d{6}" required autofocus class="code-entry">
+        {% for e in form.code.errors %}<div class="err">{{ e }}</div>{% endfor %}
+      </div>
+      <button class="btn btn-block" type="submit">{{ T.my_verify }}</button>
+    </form>
+    <p class="small" style="margin:14px 0 0"><a class="link" href="{% url 'my_reservations' %}">{{ T.my_other_number }}</a></p>
+    {% endif %}
+  </div>
+  <p class="small" style="margin-top:16px"><a class="link" href="{% url 'track' %}">{{ T.track_title }}</a> · {{ T.footer_ussd }} <strong>{{ ussd_code }}</strong></p>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'core/base.html' %}
+{% block title %}Register your pharmacy · MedFinder Rwanda{% endblock %}
+{% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">{% endblock %}
+{% block content %}
+<div class="container page" style="max-width:880px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Free to start</span>
+      <h1>Register your pharmacy</h1>
+      <p>Your pharmacy stays hidden from patients until an administrator verifies your Rwanda FDA license.</p>
+    </div>
+  </div>
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<p class="alert alert-red">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+    <div class="card">
+      <h2>Account</h2>
+      <p class="small">You will use these to log in to your dashboard.</p>
+      <div class="form-grid">
+        {% include 'core/_field.html' with f=form.username %}
+        {% include 'core/_field.html' with f=form.email %}
+        {% include 'core/_field.html' with f=form.password %}
+        {% include 'core/_field.html' with f=form.password_confirm %}
+      </div>
+    </div>
+    <div class="card">
+      <h2>Pharmacy details</h2>
+      <div class="form-grid">
+        {% include 'core/_field.html' with f=form.name %}
+        {% include 'core/_field.html' with f=form.license_no %}
+        {% include 'core/_field.html' with f=form.license_document full=True %}
+        {% include 'core/_field.html' with f=form.district %}
+        {% include 'core/_field.html' with f=form.phone %}
+        {% include 'core/_field.html' with f=form.address full=True %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Location on the map</h2><p class="small">Click the map to place your pin, or stand in the pharmacy and use your current location.</p></div>
+        <button type="button" class="btn btn-ghost btn-sm" id="geo">Use my current location</button>
+      </div>
+      <div id="pickmap" style="height:300px;border-radius:12px;border:1px solid var(--line);margin-bottom:12px"></div>
+      <p class="small" id="geomsg" aria-live="polite"></p>
+      <div class="form-grid">
+        {% include 'core/_field.html' with f=form.latitude %}
+        {% include 'core/_field.html' with f=form.longitude %}
+      </div>
+    </div>
+    <div class="card">
+      {% include 'core/_field.html' with f=form.agree %}
+      <p class="small">Read the <a class="link" href="{% url 'terms' %}" target="_blank">Terms of Service</a> (free {{ biz.trial_days }}-day trial, then {{ biz.price }} RWF/month) and the <a class="link" href="{% url 'privacy' %}" target="_blank">privacy notice</a>.</p>
+      <button type="submit" class="btn">Submit registration</button>
+    </div>
+  </form>
+  <p class="small" style="margin-top:16px"><a class="link" href="{% url 'login' %}">Already registered? Log in</a></p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function () {
+  var latI = document.getElementById('id_latitude');
+  var lngI = document.getElementById('id_longitude');
+  var msg = document.getElementById('geomsg');
+  var map = L.map('pickmap').setView([-1.9441, 30.0619], 12);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+  var marker = null;
+  function place(lat, lng, zoom) {
+    latI.value = lat.toFixed(6); lngI.value = lng.toFixed(6);
+    if (marker) marker.setLatLng([lat, lng]); else marker = L.marker([lat, lng], { draggable: true }).addTo(map)
+      .on('dragend', function (e) { var p = e.target.getLatLng(); place(p.lat, p.lng); });
+    if (zoom) map.setView([lat, lng], zoom);
+    msg.textContent = 'Location set. Drag the pin to adjust.';
+  }
+  if (latI.value && lngI.value) place(parseFloat(latI.value), parseFloat(lngI.value), 16);
+  map.on('click', function (e) { place(e.latlng.lat, e.latlng.lng); });
+  document.getElementById('geo').onclick = function () {
+    if (!navigator.geolocation) { msg.textContent = 'Location is not available in this browser.'; return; }
+    msg.textContent = 'Getting location…';
+    navigator.geolocation.getCurrentPosition(function (p) { place(p.coords.latitude, p.coords.longitude, 17); },
+      function () { msg.textContent = 'Could not get location. Click the map instead.'; },
+      { enableHighAccuracy: true, timeout: 15000 });
+  };
+})();
+</script>
+{% endblock %}

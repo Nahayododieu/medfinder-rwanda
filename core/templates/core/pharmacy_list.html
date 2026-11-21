@@ -1,0 +1,104 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ T.pharmacies_title }} · {{ biz.name }}{% endblock %}
+{% block og_title %}{{ T.pharmacies_title }} · {{ biz.name }}{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ T.nav_find_pharmacy }}</span></nav>
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.pharmacies_eyebrow }}</span>
+    <h1>{{ T.pharmacies_title }}</h1>
+    <p>{{ T.pharmacies_copy }}</p>
+  </div>
+</section>
+
+<div class="container page" style="padding-top:24px">
+  <form method="get" class="filter-bar" role="search" aria-label="{{ T.nav_find_pharmacy }}">
+    <label class="filter-item grow"><span>{{ T.nav_find_pharmacy }}</span>
+      <input type="search" name="q" value="{{ q }}" placeholder="{{ T.pharmacy_search_placeholder }}" maxlength="80"></label>
+    <label class="filter-item"><span>District</span>
+      <select name="district"><option value="">{{ T.all_districts }}</option>
+        {% for value, label in districts %}<option value="{{ value }}"{% if value == district %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select></label>
+    <label class="filter-item"><span>{{ T.filter_insurance }}</span>
+      <select name="insurer"><option value="">{{ T.any_insurance }}</option>
+        {% for code, label in insurers %}<option value="{{ code }}"{% if code == insurer %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select></label>
+    <label class="filter-check"><input type="checkbox" name="open_now" value="1"{% if open_now %} checked{% endif %}> {{ T.filter_open }}</label>
+    <label class="filter-check"><input type="checkbox" name="h24" value="1"{% if only_24h %} checked{% endif %}> {{ T.filter_24h }}</label>
+    <label class="filter-check"><input type="checkbox" name="delivery" value="1"{% if delivers %} checked{% endif %}> {{ T.delivery_option }}</label>
+    <button class="btn btn-sm" type="submit">{{ T.apply_filters }}</button>
+    {% if filters_active %}<a class="btn btn-sm btn-ghost" href="{% url 'pharmacy_list' %}">{{ T.clear_filters }}</a>{% endif %}
+  </form>
+
+  <p class="small list-count">{{ total }} {% if total == 1 %}{{ T.result }}{% else %}{{ T.results }}{% endif %}</p>
+
+  {% if page.object_list %}
+  <div class="results-grid">
+    <div id="map" role="region" aria-label="{{ T.pharmacies_title }}"></div>
+    <div class="result-list">
+      {% for p in page.object_list %}
+      <article class="result-card pharmacy-card">
+        <div class="result-topline">
+          <div>
+            <h2 class="pharmacy-name"><a href="{% url 'pharmacy_detail' p.pk %}">{{ p.name }}</a></h2>
+            <span class="district">{{ p.district }}{% if p.address %} · {{ p.address }}{% endif %}</span>
+            {% if p.rating %}<span class="rating" title="{{ p.rating.0 }} / 5 ({{ p.rating.1 }} {{ T.reviews }})"><span aria-hidden="true">★</span> {{ p.rating.0 }} <span class="muted">({{ p.rating.1 }})</span></span>{% endif %}
+          </div>
+          <span class="badge-row">
+            {% with open=p.is_open_now %}
+              {% if p.open_24h %}<span class="badge badge-blue">24h</span>
+              {% elif open is True %}<span class="badge badge-blue">{{ T.open_now }}</span>
+              {% elif open is False %}<span class="badge badge-gray">{{ T.closed_now }}</span>{% endif %}
+            {% endwith %}
+            <span class="badge badge-green">{{ T.verified }}</span>
+          </span>
+        </div>
+        <p class="result-meta">
+          {% if p.hours_display %}<span>{{ T.hours }}: {{ p.hours_display }}</span>{% endif %}
+          <span>{{ p.stock_count }} {{ T.medicines_in_stock }}</span>
+          {% if p.insurer_labels %}<span>{{ T.insurance_label }}: {{ p.insurer_labels|join:", " }}</span>{% endif %}
+        </p>
+        <div class="action-row">
+          <a class="btn btn-sm" href="{% url 'pharmacy_detail' p.pk %}">{{ T.view_pharmacy }}</a>
+          <a class="btn btn-ghost btn-sm" href="tel:{{ p.phone }}">{{ T.call }} {{ p.phone }}</a>
+          <a class="btn btn-ghost btn-sm" href="https://www.openstreetmap.org/directions?to={{ p.latitude|stringformat:'f' }}%2C{{ p.longitude|stringformat:'f' }}" target="_blank" rel="noopener">{{ T.directions }}</a>
+        </div>
+      </article>
+      {% endfor %}
+      {% include 'core/_pager.html' %}
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>{{ T.no_pharmacies }}</h3>
+    <p><a class="link" href="{% url 'pharmacy_list' %}">{{ T.clear_filters }}</a></p>
+  </div>
+  {% endif %}
+</div>
+{{ map_points|json_script:"map-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function () {
+  var el = document.getElementById('map');
+  var data = JSON.parse(document.getElementById('map-data').textContent);
+  if (!el || !window.L || !data.length) return;
+  var map = L.map(el, { scrollWheelZoom: false });
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
+  }).addTo(map);
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  var bounds = data.map(function (p) {
+    L.marker([p.lat, p.lng]).addTo(map)
+      .bindPopup('<strong>' + esc(p.name) + '</strong><br>' + esc(p.district) + '<br><a href="' + p.url + '">{{ T.view_pharmacy|escapejs }} →</a>');
+    return [p.lat, p.lng];
+  });
+  if (bounds.length === 1) map.setView(bounds[0], 15); else map.fitBounds(bounds, { padding: [30, 30] });
+})();
+</script>
+{% endblock %}

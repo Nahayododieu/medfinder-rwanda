@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% block title %}Staff · {{ pharmacy.name }}{% endblock %}
+{% block content %}
+<div class="container page" style="max-width:900px">
+  <div class="page-head">
+    <div><span class="eyebrow">Owner only</span><h1>Staff accounts</h1>
+      <p>Give each pharmacist their own login. Pharmacists can manage stock and reservations; only you can change billing, pharmacy details and staff.</p></div>
+    <a class="btn btn-ghost btn-sm" href="{% url 'dashboard' %}">← Dashboard</a>
+  </div>
+  <div class="grid-main">
+    <div class="card">
+      <h2>Team</h2>
+      <div class="table-wrap">
+        <table class="table stack-mobile">
+          <thead><tr><th>Username</th><th>Role</th><th>Added</th><th></th></tr></thead>
+          <tbody>
+            <tr><td data-label="Username"><strong>{{ pharmacy.owner.username }}</strong></td><td data-label="Role"><span class="badge badge-green">Owner</span></td><td data-label="Added">{{ pharmacy.created_at|date:"d M Y" }}</td><td data-label=""></td></tr>
+            {% for m in members %}
+            <tr>
+              <td data-label="Username">{{ m.user.username }}</td>
+              <td data-label="Role"><span class="badge badge-blue">{{ m.get_role_display }}</span></td>
+              <td data-label="Added">{{ m.created_at|date:"d M Y" }}</td>
+              <td data-label=""><form method="post" action="{% url 'staff_remove' m.pk %}" class="confirm-form" data-confirm="Remove {{ m.user.username }}? They will no longer be able to log in.">{% csrf_token %}<button class="btn btn-sm btn-danger">Remove</button></form></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <form method="post" class="card stack">
+      {% csrf_token %}
+      <h2>Add a pharmacist</h2>
+      {% include 'core/_field.html' with f=form.username %}
+      {% include 'core/_field.html' with f=form.email %}
+      {% include 'core/_field.html' with f=form.password %}
+      <button class="btn" type="submit">Create account</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.querySelectorAll('.confirm-form').forEach(function (f) {
+    f.addEventListener('submit', function (e) { if (!window.confirm(f.dataset.confirm)) e.preventDefault(); });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+<form method="post" action="{% url 'stock_alert' %}" class="alert-form card">
+  {% csrf_token %}
+  <input type="hidden" name="medicine" value="{{ medicine.pk }}">
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <div class="alert-form-head">
+    <span class="alert-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <div>
+      <h3>{{ T.alert_title }}</h3>
+      <p class="small">{{ T.alert_copy }} <strong>{{ medicine.name }}</strong>.</p>
+    </div>
+  </div>
+  <div class="alert-form-row">
+    <label class="sr-only" for="alert-phone">{{ T.your_phone }}</label>
+    <input class="input" type="tel" id="alert-phone" name="phone" placeholder="{{ T.your_phone }} (07…)" autocomplete="tel" inputmode="tel" maxlength="20" pattern="[0-9+ ]{9,16}" required>
+    <label class="sr-only" for="alert-district">District</label>
+    <select class="input" id="alert-district" name="district">
+      <option value="">{{ T.alert_any_district }}</option>
+      {% for value, label in districts %}<option value="{{ value }}"{% if value == district %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <button class="btn" type="submit">{{ T.alert_button }}</button>
+  </div>
+  <label class="consent"><input type="checkbox" name="consent" value="1" required> <span>{{ T.alert_consent }} <a class="link" href="{% url 'privacy' %}">{{ T.privacy_link }}</a></span></label>
+</form>

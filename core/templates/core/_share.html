@@ -1,0 +1,16 @@
+{% with url=request.build_absolute_uri %}
+<div class="share-row" aria-label="{{ T.share }}">
+  <a class="share-btn share-wa" href="https://wa.me/?text={{ share_text|urlencode }}%20{{ url|urlencode }}" target="_blank" rel="noopener">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20l1.3-3.8A8.5 8.5 0 1 1 8 19l-4 1Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8.5c0 3 2.5 6.5 6.5 6.5l1-1.6-2-1-1 .9c-1-.4-2.4-1.8-2.8-2.8l.9-1-1-2L9 8.5Z" fill="currentColor"/></svg>
+    WhatsApp
+  </a>
+  <button type="button" class="share-btn" data-share-url="{{ url }}" data-share-text="{{ share_text }}" hidden>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    {{ T.share }}
+  </button>
+  <button type="button" class="share-btn" data-copy-url="{{ url }}" data-done="{{ T.link_copied }}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.8"/></svg>
+    <span>{{ T.copy_link }}</span>
+  </button>
+</div>
+{% endwith %}

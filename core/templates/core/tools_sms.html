@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+{% block title %}SMS outbox · MedFinder Rwanda{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div><span class="eyebrow">Staff tool</span><h1>SMS outbox and inbox</h1>
+      <p>{% if live %}Live mode: messages are sent through Africa's Talking and recorded here.{% else %}Simulation mode: no AT_API_KEY is set, so messages are recorded here instead of being sent.{% endif %}</p></div>
+    <a class="btn btn-ghost btn-sm" href="{% url 'analytics' %}">← Analytics</a>
+  </div>
+  <div class="grid-main">
+    <div class="card">
+      <div class="card-head">
+        <h2>Messages</h2>
+        <form method="get" class="inline-form"><input name="phone" value="{{ phone }}" placeholder="Filter by phone"><button class="btn btn-sm btn-ghost">Filter</button></form>
+      </div>
+      {% for m in logs %}
+        <div style="display:flex;gap:10px;margin-bottom:12px;{% if m.direction == 'in' %}flex-direction:row-reverse{% endif %}">
+          <div style="max-width:85%">
+            <div class="sms-bubble{% if m.direction == 'in' %} in{% endif %}">{{ m.message|linebreaksbr }}</div>
+            <div class="small">{% if m.direction == 'in' %}From{% else %}To{% endif %} {{ m.phone }} · {{ m.created_at|date:"d M H:i" }} ·
+              {% if m.status == 'failed' %}<span class="badge badge-red" title="{{ m.error }}">Failed</span>{% else %}{{ m.get_status_display }}{% endif %}</div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="small">No messages yet. Make a reservation to see the pickup-code SMS.</p>
+      {% endfor %}
+    </div>
+    <div class="card">
+      <h2>Simulate an incoming SMS</h2>
+      <p class="small">Test pharmacy stock updates. The sender must be a verified pharmacy's phone number.</p>
+      <form method="post" class="stack">
+        {% csrf_token %}
+        <div class="field"><label for="from">From</label><input id="from" name="from" value="+250788100102" required></div>
+        <div class="field"><label for="text">Message</label><input id="text" name="text" value="STOCK Paracetamol 500mg 80 110" required></div>
+        <button class="btn" type="submit">Receive SMS</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

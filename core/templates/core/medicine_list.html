@@ -1,0 +1,69 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ T.medicines_title }} · {{ biz.name }}{% endblock %}
+{% block og_title %}{{ T.medicines_title }} · {{ biz.name }}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ T.nav_medicines }}</span></nav>
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.medicines_eyebrow }}</span>
+    <h1>{% if category %}{{ category }}{% else %}{{ T.medicines_title }}{% endif %}</h1>
+    <p>{{ T.medicines_copy }}</p>
+  </div>
+</section>
+
+<div class="container page" style="padding-top:24px">
+  <div class="catalogue">
+    <aside class="catalogue-side" aria-label="{{ T.all_categories }}">
+      <h2 class="side-title">{{ T.category_label }}</h2>
+      <nav class="side-links">
+        <a href="{% url 'medicine_list' %}" class="{% if not category %}active{% endif %}">{{ T.all_categories }}</a>
+        {% for c in categories %}
+        <a href="?category={{ c.category|urlencode }}" class="{% if c.category|lower == category|lower %}active{% endif %}">{{ c.category }} <span>{{ c.n }}</span></a>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <div>
+      <form method="get" class="filter-bar" role="search" aria-label="{{ T.nav_medicines }}">
+        {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+        <label class="filter-item grow"><span>{{ T.search_label }}</span>
+          <input type="search" name="q" value="{{ q }}" placeholder="{{ T.medicine_filter_placeholder }}" maxlength="80"></label>
+        <label class="filter-check"><input type="checkbox" name="available" value="1"{% if only_available %} checked{% endif %}> {{ T.only_available }}</label>
+        <button class="btn btn-sm" type="submit">{{ T.apply_filters }}</button>
+        {% if filters_active %}<a class="btn btn-sm btn-ghost" href="{% url 'medicine_list' %}">{{ T.clear_filters }}</a>{% endif %}
+      </form>
+
+      <nav class="az" aria-label="A–Z">
+        <a href="?{% if category %}category={{ category|urlencode }}{% endif %}" class="{% if not letter %}active{% endif %}">A–Z</a>
+        {% for l in letters %}<a href="?letter={{ l }}{% if category %}&category={{ category|urlencode }}{% endif %}" class="{% if l == letter %}active{% endif %}">{{ l }}</a>{% endfor %}
+      </nav>
+
+      {% if page.object_list %}
+      <div class="medicine-grid">
+        {% for m in page.object_list %}
+        <a class="medicine-card" href="{% url 'medicine_detail' m.pk %}">
+          <span class="medicine-card-top">
+            <strong>{{ m.name }}</strong>
+            {% if m.requires_prescription %}<span class="tag" title="{{ T.rx_needed }}">Rx</span>{% endif %}
+          </span>
+          {% if m.generic_name %}<span class="small">{{ m.generic_name }}</span>{% endif %}
+          {% if m.category %}<span class="chip">{{ m.category }}</span>{% endif %}
+          <span class="medicine-card-foot">
+            {% if m.pharmacy_count %}
+              <span class="avail ok">{{ T.available_at }} {{ m.pharmacy_count }} {% if m.pharmacy_count == 1 %}{{ T.pharmacy_word }}{% else %}{{ T.pharmacies_word }}{% endif %}</span>
+              <span class="from">{{ T.from_price }} <strong>{{ m.min_price|floatformat:0 }} RWF</strong></span>
+            {% else %}
+              <span class="avail none">{{ T.not_available }}</span>
+            {% endif %}
+          </span>
+        </a>
+        {% endfor %}
+      </div>
+      {% include 'core/_pager.html' %}
+      {% else %}
+      <div class="empty-state"><h3>{{ T.no_medicines }}</h3><p><a class="link" href="{% url 'medicine_list' %}">{{ T.clear_filters }}</a></p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+{% block title %}Reports · {{ pharmacy.name }}{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div><span class="eyebrow">Reports</span><h1>Sales and demand</h1><p>{{ pharmacy.name }} · last {{ days }} days.</p></div>
+    <div class="inline-form">
+      <div class="sort-tabs" role="group" aria-label="Period">
+        <a href="?days=7" class="{% if days == 7 %}active{% endif %}">7 days</a>
+        <a href="?days=30" class="{% if days == 30 %}active{% endif %}">30 days</a>
+        <a href="?days=90" class="{% if days == 90 %}active{% endif %}">90 days</a>
+        <a href="?days=365" class="{% if days == 365 %}active{% endif %}">1 year</a>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="?days={{ days }}&export=csv">Export sales (Excel CSV)</a>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="window.print()">Print / PDF</button>
+      <a class="btn btn-ghost btn-sm" href="{% url 'dashboard' %}">← Dashboard</a>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><span class="label">Sales via MedFinder</span><span class="value">{{ totals.revenue|floatformat:0|intcomma }}</span><span class="sub">RWF · {{ totals.orders }} pickups</span></div>
+    <div class="kpi"><span class="label">Units sold</span><span class="value">{{ totals.units|intcomma }}</span><span class="sub">from reservations</span></div>
+    <div class="kpi"><span class="label">Reservations</span><span class="value">{{ totals.reservations }}</span><span class="sub">{{ totals.cancelled }} cancelled or expired</span></div>
+    <div class="kpi"><span class="label">Paid online</span><span class="value">{{ totals.paid_online|floatformat:0|intcomma }}</span><span class="sub">RWF by mobile money</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Sales by medicine</h2>
+    <div class="table-wrap">
+      <table class="table stack-mobile">
+        <thead><tr><th>Medicine</th><th class="num">Pickups</th><th class="num">Units</th><th class="num">Revenue (RWF)</th></tr></thead>
+        <tbody>
+        {% for s in sales %}
+          <tr><td data-label="Medicine">{{ s.medicine }}</td><td data-label="Pickups" class="num">{{ s.orders }}</td><td data-label="Units" class="num">{{ s.units }}</td><td data-label="Revenue (RWF)" class="num">{{ s.revenue|floatformat:0|intcomma }}</td></tr>
+        {% empty %}
+          <tr><td colspan="4" class="empty-row">No completed pickups in this period.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:16px">
+    <div class="card">
+      <h2>Most searched in {{ pharmacy.district }}</h2>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Search</th><th class="num">Searches</th></tr></thead><tbody>
+        {% for r in searched %}<tr><td>{{ r.query }}</td><td class="num">{{ r.total }}</td></tr>{% empty %}<tr><td colspan="2" class="empty-row">No searches yet.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>Missed demand in {{ pharmacy.district }}</h2>
+      <p class="small">Searched but found nowhere in the district: stock these to win new customers.</p>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Search</th><th class="num">Not found</th></tr></thead><tbody>
+        {% for r in missed %}<tr><td>{{ r.query }}</td><td class="num">{{ r.total }}</td></tr>{% empty %}<tr><td colspan="2" class="empty-row">No missed demand recorded.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h2>Stock change history</h2>
+    <p class="small">Every manual change to stock or price, who made it and from where.</p>
+    <div class="table-wrap">
+      <table class="table stack-mobile">
+        <thead><tr><th>When</th><th>Medicine</th><th class="num">Quantity</th><th class="num">Price (RWF)</th><th>By</th><th>From</th></tr></thead>
+        <tbody>
+        {% for c in changes %}
+          <tr>
+            <td data-label="When" class="nowrap">{{ c.created_at|date:"d M H:i" }}</td>
+            <td data-label="Medicine">{{ c.medicine.name }}</td>
+            <td data-label="Quantity" class="num">{% if c.source == 'delete' %}removed{% else %}{{ c.old_quantity|default_if_none:"new" }} → {{ c.new_quantity }}{% endif %}</td>
+            <td data-label="Price (RWF)" class="num">{% if c.new_price is not None %}{% if c.old_price is not None and c.old_price != c.new_price %}{{ c.old_price|floatformat:0 }} → {% endif %}{{ c.new_price|floatformat:0 }}{% else %}–{% endif %}</td>
+            <td data-label="By">{{ c.user.username|default:"–" }}</td>
+            <td data-label="From">{{ c.get_source_display }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="empty-row">No changes recorded yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

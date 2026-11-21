@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+{% block title %}API for partners · {{ biz.name }}{% endblock %}
+{% block content %}
+<div class="narrow page" style="max-width:860px">
+  <div class="page-head"><div><span class="eyebrow">Developers</span><h1>Public API</h1>
+    <p>Read-only JSON endpoints for partners such as insurers, clinics and health apps. No key needed; {{ limit }} requests per minute per IP. Contact {{ biz.email }} for higher limits.</p></div></div>
+  <div class="card prose">
+    <h2 style="margin-top:0">Search stock</h2>
+    <p><code>GET /api/v1/search/?q=&lt;medicine&gt;[&amp;district=Gasabo][&amp;lat=-1.95&amp;lng=30.10]</code></p>
+    <p>Verified pharmacies holding the medicine (brand or generic name). Typos are corrected automatically and reported in <code>corrected_query</code>. With <code>lat</code>/<code>lng</code>, results include <code>distance_km</code> and are sorted nearest first.</p>
+    <pre class="code-block">curl "{{ base }}/api/v1/search/?q=paracetamol&amp;district=Gasabo"
+
+{
+  "query": "paracetamol", "corrected_query": null, "count": 1,
+  "results": [{
+    "medicine": "Paracetamol 500mg", "generic_name": "Paracetamol",
+    "requires_prescription": false, "price_rwf": 100.0, "quantity": 42,
+    "updated_at": "2026-11-19T09:30:00+02:00",
+    "pharmacy": {"id": 2, "name": "Kimironko Pharmacy", "district": "Gasabo",
+                 "phone": "0788100102", "latitude": -1.9494, "longitude": 30.126,
+                 "open_now": true, "hours": "07:30–21:00", "insurance": ["mutuelle", "rssb"]}
+  }]
+}</pre>
+    <h2>List pharmacies</h2>
+    <p><code>GET /api/v1/pharmacies/[?district=Huye]</code>: verified, active pharmacies with location, hours and insurance.</p>
+    <h2>List medicines</h2>
+    <p><code>GET /api/v1/medicines/[?q=amox]</code>: the catalogue (up to 200 results).</p>
+    <h2>Rules</h2>
+    <ul>
+      <li>Stock changes often: cache results for a few minutes at most, and tell users to confirm with the pharmacy.</li>
+      <li>Do not present MedFinder data as medical advice.</li>
+      <li>Credit "Data: {{ biz.name }}" where results are shown.</li>
+      <li>Errors return JSON with an <code>error</code> field; <code>429</code> means the rate limit was reached.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

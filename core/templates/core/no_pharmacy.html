@@ -1,0 +1,8 @@
+{% extends 'core/base.html' %}
+{% block title %}No pharmacy linked · MedFinder Rwanda{% endblock %}
+{% block content %}
+<div class="narrow page">
+  <div class="page-head"><div><h1>No pharmacy linked</h1></div></div>
+  <div class="card"><p style="margin:0">This account is not linked to a pharmacy. <a class="link" href="{% url 'register' %}">Register a pharmacy</a> or ask the administrator to link your account.</p></div>
+</div>
+{% endblock %}

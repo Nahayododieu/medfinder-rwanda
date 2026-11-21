@@ -1,0 +1,15 @@
+<a class="card my-entry" href="{% if e.order %}{% url 'order_detail' e.order.pk e.order.pickup_code %}{% else %}{% url 'reservation_detail' e.res.pk e.res.pickup_code %}{% endif %}">
+  <div class="me-main">
+    <span class="small">{% if e.order %}{{ T.order_no }} #{{ e.order.pk }} · {{ e.items|length }} {{ T.items_word }}{% else %}{{ T.reservation_no }} #{{ e.res.pk }}{% endif %} · {{ e.created_at|date:"d M Y, H:i" }}</span>
+    <strong>{% for r in e.items %}{{ r.inventory.medicine.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong>
+    <span class="small">{{ e.pharmacy.name }} · {{ e.pharmacy.district }}</span>
+  </div>
+  <div class="me-side">
+    {% if e.status == 'pending' %}<span class="badge badge-amber">{{ T.status_pending }}</span>
+    {% elif e.status == 'ready' %}<span class="badge badge-green">{{ T.status_ready }}</span>
+    {% elif e.status == 'done' %}<span class="badge badge-blue">{{ T.status_done }}</span>
+    {% else %}<span class="badge badge-red">{{ T.status_cancelled }}</span>{% endif %}
+    <strong>{{ e.total|floatformat:0 }} RWF</strong>
+    {% if e.paid and e.status != 'cancelled' %}<span class="small ok-text">{{ T.paid }}</span>{% endif %}
+  </div>
+</a>

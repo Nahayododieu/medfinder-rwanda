@@ -1,0 +1,123 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ T.order_no }} #{{ order.pk }} · MedFinder Rwanda{% endblock %}
+{% block content %}
+<div class="narrow page" style="max-width:720px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.order_no }} #{{ order.pk }}</span>
+      <h1>{{ T.order_title }}</h1>
+    </div>
+    {% if status == 'pending' %}<span class="badge badge-amber">{{ T.status_pending }}</span>
+    {% elif status == 'ready' %}<span class="badge badge-green">{{ T.status_ready }}</span>
+    {% elif status == 'done' %}<span class="badge badge-blue">{{ T.status_done }}</span>
+    {% else %}<span class="badge badge-red">{{ T.status_cancelled }}</span>{% endif %}
+  </div>
+
+  <div class="card ticket">
+    <p class="small">{{ T.show_code }}</p>
+    <div class="code" aria-label="Pickup code">{{ order.pickup_code }}</div>
+    <p class="small">{{ T.order_no }}: <strong>#{{ order.pk }}</strong>{% if expires_at and unpaid_total %} · {{ T.hold_until }} <strong>{{ expires_at|date:"H:i" }}</strong>{% endif %}</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div><h2>{{ order.pharmacy.name }}</h2><p class="small">{{ order.pharmacy.district }}{% if order.pharmacy.address %} · {{ order.pharmacy.address }}{% endif %}</p></div>
+      <a class="btn btn-ghost btn-sm" href="tel:{{ order.pharmacy.phone }}">{{ T.call }} {{ order.pharmacy.phone }}</a>
+    </div>
+    <ul class="order-lines">
+      {% for r in lines %}
+      <li class="{% if r.status == 'cancelled' %}is-cancelled{% endif %}">
+        <div>
+          <strong>{{ r.inventory.medicine.name }}</strong> × {{ r.quantity }}
+          {% if r.needs_prescription %}<span class="tag">{{ T.rx_needed }}</span>{% endif %}
+          <div class="small">
+            {% if r.status == 'pending' %}{{ T.status_pending }}{% elif r.status == 'ready' %}{{ T.status_ready }}{% elif r.status == 'done' %}{{ T.status_done }}{% else %}{{ T.status_cancelled }}{% endif %}
+            {% if r.is_paid %} · <span class="ok-text">{{ T.paid }}</span>{% endif %}
+            {% if r.prescription_status == 'missing' %} · {{ T.rx_status_missing }}
+            {% elif r.prescription_status == 'uploaded' %} · {{ T.rx_status_uploaded }}
+            {% elif r.prescription_status == 'approved' %} · <span class="ok-text">{{ T.rx_status_approved }}</span>
+            {% elif r.prescription_status == 'rejected' %} · <span class="err-text">{{ T.rx_status_rejected }}</span>{% endif %}
+          </div>
+        </div>
+        <span class="ol-price">{{ r.subtotal|floatformat:0 }} RWF</span>
+      </li>
+      {% endfor %}
+    </ul>
+    <dl class="totals">
+      {% if delivery %}<dt>{{ T.delivery_fee }}</dt><dd>{% if delivery_fee %}{{ delivery_fee|floatformat:0 }} RWF{% else %}{{ T.free }}{% endif %}</dd>{% endif %}
+      <dt class="grand">{{ T.total }}</dt><dd class="grand">{{ total|floatformat:0 }} RWF</dd>
+    </dl>
+    {% if delivery %}
+      <p class="alert alert-green" style="margin:14px 0 0"><strong>{{ T.delivery_to }}:</strong> {{ delivery.delivery_address }}</p>
+    {% else %}
+      <p style="margin:14px 0 0">
+        <a class="btn btn-ghost btn-sm" href="https://www.openstreetmap.org/directions?to={{ order.pharmacy.latitude|stringformat:'f' }}%2C{{ order.pharmacy.longitude|stringformat:'f' }}" target="_blank" rel="noopener">{{ T.directions }} ↗</a>
+      </p>
+    {% endif %}
+  </div>
+
+  {% if rx_upload %}
+  <div class="card">
+    <h2>{{ T.rx_upload_title }}</h2>
+    <p class="small">{{ T.rx_upload_help }}</p>
+    <form method="post" action="{% url 'order_prescription' order.pk order.pickup_code %}" enctype="multipart/form-data" class="inline-form">
+      {% csrf_token %}
+      <label class="sr-only" for="order-rx">{{ T.rx_upload_label }}</label>
+      <input type="file" id="order-rx" name="prescription" accept="image/jpeg,image/png,application/pdf" required style="flex:1 1 240px">
+      <button class="btn" type="submit">{{ T.rx_upload_button }}</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if paid_amount and not unpaid_total %}
+    <div class="card"><p class="alert alert-green" style="margin:0">{{ T.payment_success }} ({{ paid_amount|floatformat:0 }} RWF)</p></div>
+  {% endif %}
+  {% if refund_amount %}
+    <div class="card"><p class="alert alert-amber" style="margin:0">A refund of {{ refund_amount|floatformat:0 }} RWF is due for cancelled medicines.</p></div>
+  {% endif %}
+  {% if pending_payment %}
+    <div class="card">
+      <h2>{{ T.pay_title }}</h2>
+      <p class="alert alert-amber">{{ T.payment_pending }}</p>
+      <form method="post" action="{% url 'order_payment_status' order.pk order.pickup_code %}">
+        {% csrf_token %}<button class="btn btn-momo">{{ T.check_payment }}</button>
+      </form>
+    </div>
+  {% elif can_pay %}
+    <div class="card">
+      <h2>{{ T.order_pay_all }}</h2>
+      <p class="small">{{ T.pay_copy }}{% if momo_simulated %} <span class="badge badge-gray">Sandbox simulation</span>{% endif %}</p>
+      {% if payment_failed %}<p class="alert alert-red">{{ T.payment_failed }}</p>{% endif %}
+      <form method="post" action="{% url 'order_pay' order.pk order.pickup_code %}" class="inline-form">
+        {% csrf_token %}
+        <label class="sr-only" for="momo-phone">{{ T.momo_number }}</label>
+        <input type="tel" id="momo-phone" name="phone" value="{{ pay_form.phone.value|default:'' }}" placeholder="078… / 072…" required style="flex:1 1 200px">
+        <button class="btn btn-momo" type="submit">{{ T.pay_button }} · {{ unpaid_total|floatformat:0 }} RWF</button>
+      </form>
+    </div>
+  {% endif %}
+
+  {% if can_cancel %}
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div><h2>{{ T.cancel_title }}</h2><p class="small" style="margin:0">{{ T.cancel_copy }}</p></div>
+      <form method="post" action="{% url 'order_cancel' order.pk order.pickup_code %}" id="cancelForm">
+        {% csrf_token %}<button class="btn btn-danger" type="submit">{{ T.cancel_button }}</button>
+      </form>
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <h2 style="font-size:15px">{{ T.refund_title }}</h2>
+    <p class="small" style="margin:0">{{ T.refund_copy }} <a class="link" href="{% url 'terms' %}">{{ T.footer_terms }}</a></p>
+  </div>
+
+  <p class="small" style="margin-top:16px">{{ T.save_page }}</p>
+  <p><a class="link" href="{% url 'my_reservations' %}">{{ T.nav_my }} →</a> · <a class="link" href="{% url 'search' %}">← {{ T.back_search }}</a></p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  var cf = document.getElementById('cancelForm');
+  if (cf) cf.addEventListener('submit', function (e) { if (!window.confirm("{{ T.cancel_confirm|escapejs }}")) e.preventDefault(); });
+</script>
+{% endblock %}

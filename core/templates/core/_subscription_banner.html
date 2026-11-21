@@ -1,0 +1,23 @@
+{% load humanize %}{% with st=pharmacy.subscription_status left=pharmacy.days_left end=pharmacy.coverage_end %}
+{% if st == 'trial' %}
+  <div class="alert {% if left is not None and left <= 7 %}alert-amber{% else %}alert-green{% endif %} sub-banner">
+    <span><strong>Free trial</strong>{% if end %}: {{ left }} day{{ left|pluralize }} left, until {{ end|date:"d M Y" }}.{% endif %} Then {{ biz.price|intcomma }} RWF per month.</span>
+    {% if show_billing_link %}<a class="btn btn-sm" href="{% url 'billing' %}">Billing</a>{% endif %}
+  </div>
+{% elif st == 'active' %}
+  <div class="alert {% if left <= 7 %}alert-amber{% else %}alert-green{% endif %} sub-banner">
+    <span><strong>Subscription active</strong> until {{ end|date:"d M Y" }} ({{ left }} day{{ left|pluralize }}).</span>
+    {% if show_billing_link %}<a class="btn btn-sm btn-ghost" href="{% url 'billing' %}">Billing</a>{% endif %}
+  </div>
+{% elif st == 'grace' %}
+  <div class="alert alert-red sub-banner">
+    <span><strong>Payment due.</strong> Your period ended on {{ end|date:"d M Y" }}. Pay now to stay visible to patients.</span>
+    {% if show_billing_link %}<a class="btn btn-sm" href="{% url 'billing' %}">Pay now</a>{% endif %}
+  </div>
+{% elif st == 'overdue' %}
+  <div class="alert alert-red sub-banner">
+    <span><strong>{% if pharmacy.hidden_for_nonpayment %}Hidden from search:{% else %}Overdue:{% endif %}</strong> your subscription ended on {{ end|date:"d M Y" }}.{% if pharmacy.hidden_for_nonpayment %} Patients cannot see your pharmacy until you pay.{% endif %}</span>
+    {% if show_billing_link %}<a class="btn btn-sm" href="{% url 'billing' %}">Pay now</a>{% endif %}
+  </div>
+{% endif %}
+{% endwith %}

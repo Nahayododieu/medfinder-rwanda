@@ -1,0 +1,81 @@
+# Render blueprint for MedFinder Rwanda (https://render.com/docs/blueprint-spec)
+# Values marked "sync: false" are secrets or personal details: Render asks for them when
+# the blueprint is created, so they are never stored in this repository.
+services:
+  - type: web
+    name: medfinder-rwanda
+    runtime: python
+    region: frankfurt          # same region as the Neon database (eu-central-1)
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: python manage.py migrate --noinput && gunicorn config.wsgi --workers 2 --timeout 60 --log-file -
+    healthCheckPath: /healthz/
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.13
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      # Your own domain later, e.g. medfinder.rw,www.medfinder.rw (the onrender.com address is added automatically)
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      # Email (Gmail app password)
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      # Business identity
+      - key: BUSINESS_NAME
+        value: MedFinder Rwanda
+      - key: BUSINESS_OWNER
+        sync: false
+      - key: BUSINESS_FOUNDER
+        sync: false
+      - key: BUSINESS_RDB_NUMBER
+        sync: false
+      - key: SUPPORT_PHONE
+        sync: false
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: SUPPORT_WHATSAPP
+        sync: false
+      # Business rules
+      - key: FREE_TRIAL_DAYS
+        value: "30"
+      - key: SUBSCRIPTION_PRICE_RWF
+        value: "5000"
+      - key: SUBSCRIPTION_GRACE_DAYS
+        value: "7"
+      - key: PLATFORM_COMMISSION_RATE
+        value: "0.03"
+      - key: HIDE_UNPAID_PHARMACIES
+        value: "True"
+      # SMS / USSD (Africa's Talking) and MoMo: leave empty for simulation mode
+      - key: AT_USERNAME
+        value: sandbox
+      - key: AT_API_KEY
+        sync: false
+      - key: MOMO_TARGET_ENVIRONMENT
+        value: sandbox
+      - key: MOMO_CURRENCY
+        value: EUR
+      - key: MOMO_SUBSCRIPTION_KEY
+        sync: false
+      - key: MOMO_API_USER
+        sync: false
+      - key: MOMO_API_KEY
+        sync: false

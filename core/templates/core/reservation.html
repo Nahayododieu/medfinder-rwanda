@@ -1,0 +1,129 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ T.res_title }} #{{ res.pk }} · MedFinder Rwanda{% endblock %}
+{% block content %}
+<div class="narrow page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.reservation_no }} #{{ res.pk }}</span>
+      <h1>{{ T.res_title }}</h1>
+    </div>
+    {% if res.status == 'pending' %}<span class="badge badge-amber">{{ T.status_pending }}</span>
+    {% elif res.status == 'ready' %}<span class="badge badge-green">{{ T.status_ready }}</span>
+    {% elif res.status == 'done' %}<span class="badge badge-blue">{{ T.status_done }}</span>
+    {% else %}<span class="badge badge-red">{{ T.status_cancelled }}</span>{% endif %}
+  </div>
+
+  <div class="card ticket">
+    <p class="small">{{ T.show_code }}</p>
+    <div class="code" aria-label="Pickup code">{{ res.pickup_code }}</div>
+    <p class="small">{{ T.reservation_no }}: <strong>#{{ res.pk }}</strong>{% if res.is_open and not res.is_paid %} · {{ T.hold_until }} <strong>{{ res.expires_at|date:"H:i" }}</strong>{% endif %}</p>
+  </div>
+
+  <div class="card">
+    <dl class="detail-list">
+      <dt>{{ T.search_label }}</dt><dd>{{ res.inventory.medicine.name }} × {{ res.quantity }}</dd>
+      <dt>Pharmacy</dt><dd>{{ res.inventory.pharmacy.name }} ({{ res.inventory.pharmacy.district }})</dd>
+      {% if res.inventory.pharmacy.address %}<dt>Address</dt><dd>{{ res.inventory.pharmacy.address }}</dd>{% endif %}
+      <dt>{{ T.phone }}</dt><dd><a class="link" href="tel:{{ res.inventory.pharmacy.phone }}">{{ res.inventory.pharmacy.phone }}</a></dd>
+      {% if res.delivery %}<dt>{{ T.delivery_to }}</dt><dd>{{ res.delivery_address }}</dd>
+      <dt>{{ T.delivery_fee }}</dt><dd>{% if res.delivery_fee %}{{ res.delivery_fee|floatformat:0 }} RWF{% else %}{{ T.free }}{% endif %}</dd>{% endif %}
+      <dt>{{ T.total_pay }}</dt><dd>{{ res.total|floatformat:0 }} RWF {% if res.is_paid %}<span class="badge badge-green">{{ T.paid }}</span>{% endif %}</dd>
+      {% if res.order_id %}<dt>{{ T.part_of_order }}</dt><dd><a class="link" href="{% url 'order_detail' res.order_id res.pickup_code %}">#{{ res.order_id }} →</a></dd>{% endif %}
+      <dt>Reserved</dt><dd>{{ res.created_at|date:"d M Y, H:i" }}</dd>
+    </dl>
+    <p style="margin:14px 0 0">
+      <a class="btn btn-ghost btn-sm" href="https://www.openstreetmap.org/directions?to={{ res.inventory.pharmacy.latitude|stringformat:'f' }}%2C{{ res.inventory.pharmacy.longitude|stringformat:'f' }}" target="_blank" rel="noopener">{{ T.directions }} ↗</a>
+    </p>
+    {% if res.inventory.medicine.requires_prescription %}
+      {% if res.prescription_status == 'approved' %}<p class="alert alert-green" style="margin:14px 0 0">{{ T.rx_status_approved }}</p>
+      {% elif res.prescription_status == 'uploaded' %}<p class="alert alert-green" style="margin:14px 0 0">{{ T.rx_status_uploaded }}</p>
+      {% elif res.prescription_status == 'rejected' %}<p class="alert alert-red" style="margin:14px 0 0">{{ T.rx_status_rejected }}</p>
+      {% else %}<p class="alert alert-amber" style="margin:14px 0 0">{{ T.rx_warning }}</p>{% endif %}
+      {% if res.prescription %}<p class="small" style="margin:8px 0 0"><a class="link" href="{% url 'patient_prescription_file' res.pk res.pickup_code %}" target="_blank" rel="noopener">{{ T.rx_view }} ↗</a></p>{% endif %}
+    {% endif %}
+  </div>
+
+  {% if rx_upload %}
+  <div class="card">
+    <h2>{{ T.rx_upload_title }}</h2>
+    <p class="small">{{ T.rx_upload_help }}</p>
+    <form method="post" action="{% url 'reservation_prescription' res.pk res.pickup_code %}" enctype="multipart/form-data" class="inline-form">
+      {% csrf_token %}
+      <label class="sr-only" for="res-rx">{{ T.rx_upload_label }}</label>
+      <input type="file" id="res-rx" name="prescription" accept="image/jpeg,image/png,application/pdf" required style="flex:1 1 240px">
+      <button class="btn" type="submit">{{ T.rx_upload_button }}</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if payment and payment.status == 'successful' %}
+    <div class="card"><p class="alert alert-green" style="margin:0">{{ T.payment_success }} ({{ payment.amount|floatformat:0 }} RWF · {{ payment.get_provider_display }}{% if payment.simulated %} · simulation{% endif %})</p></div>
+  {% elif payment and payment.status == 'refund_due' %}
+    <div class="card"><p class="alert alert-amber" style="margin:0">This reservation was cancelled after payment. A refund of {{ payment.amount|floatformat:0 }} RWF is due to {{ payment.payer_phone }}.</p></div>
+  {% elif can_pay %}
+    <div class="card">
+      <h2>{{ T.pay_title }}</h2>
+      <p class="small">{{ T.pay_copy }}{% if momo_simulated %} <span class="badge badge-gray">Sandbox simulation</span>{% endif %}</p>
+      {% if payment and payment.status == 'pending' %}
+        <p class="alert alert-amber">{{ T.payment_pending }}</p>
+        <form method="post" action="{% url 'payment_status' res.pk res.pickup_code %}">
+          {% csrf_token %}<button class="btn btn-momo">{{ T.check_payment }}</button>
+        </form>
+      {% else %}
+        {% if payment and payment.status == 'failed' %}<p class="alert alert-red">{{ T.payment_failed }}</p>{% endif %}
+        <form method="post" action="{% url 'pay' res.pk res.pickup_code %}" class="inline-form">
+          {% csrf_token %}
+          <label class="sr-only" for="momo-phone">{{ T.momo_number }}</label>
+          <input type="tel" id="momo-phone" name="phone" value="{{ pay_form.phone.value|default:'' }}" placeholder="078… / 072…" required style="flex:1 1 200px">
+          <button class="btn btn-momo" type="submit">{{ T.pay_button }} · {{ res.total|floatformat:0 }} RWF</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if res.is_open and not res.is_paid %}
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div><h2>{{ T.cancel_title }}</h2><p class="small" style="margin:0">{{ T.cancel_copy }}</p></div>
+      <form method="post" action="{% url 'reservation_cancel' res.pk res.pickup_code %}" id="cancelForm">
+        {% csrf_token %}<button class="btn btn-danger" type="submit">{{ T.cancel_button }}</button>
+      </form>
+    </div>
+  {% endif %}
+
+  {% if review_form %}
+    <div class="card">
+      <h2>{{ T.review_title }}</h2>
+      <p class="small">{{ T.review_copy }}</p>
+      <form method="post" action="{% url 'reservation_review' res.pk res.pickup_code %}" class="stack">
+        {% csrf_token %}
+        <fieldset style="border:0;padding:0;margin:0">
+          <legend class="sr-only">Rating</legend>
+          <div class="stars">
+            {% for v in "54321" %}
+              <input type="radio" name="rating" id="star{{ v }}" value="{{ v }}" required><label for="star{{ v }}" title="{{ v }} / 5">★</label>
+            {% endfor %}
+          </div>
+        </fieldset>
+        <div class="field"><label for="review-comment">{{ T.review_comment }}</label><textarea id="review-comment" name="comment" rows="3" maxlength="500"></textarea></div>
+        <button class="btn" type="submit">{{ T.review_button }}</button>
+      </form>
+    </div>
+  {% elif review %}
+    <div class="card"><p class="small" style="margin:0">{{ T.review_thanks }} {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% endif %}{% endfor %}</p></div>
+  {% endif %}
+
+  <div class="card">
+    <h2 style="font-size:15px">{{ T.refund_title }}</h2>
+    <p class="small" style="margin:0">{{ T.refund_copy }} <a class="link" href="{% url 'terms' %}">{{ T.footer_terms }}</a></p>
+  </div>
+
+  <p class="small" style="margin-top:16px">{{ T.save_page }}</p>
+  <p><a class="link" href="{% url 'search' %}">← {{ T.back_search }}</a></p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  var cf = document.getElementById('cancelForm');
+  if (cf) cf.addEventListener('submit', function (e) { if (!window.confirm("{{ T.cancel_confirm|escapejs }}")) e.preventDefault(); });
+</script>
+{% endblock %}

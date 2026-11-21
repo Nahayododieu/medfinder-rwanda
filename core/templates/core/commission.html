@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+{% block title %}Commission report · {{ biz.name }}{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div><span class="eyebrow">Administrator</span><h1>Revenue and commission</h1><p>{{ start|date:"F Y" }}: online patient payments per pharmacy, and subscription income.</p></div>
+    <form method="get" class="inline-form">
+      <label class="sr-only" for="month">Month</label>
+      <select name="month" id="month" onchange="this.form.submit()">{% for m in months %}<option value="{{ m }}"{% if m == start|date:"Y-m" %} selected{% endif %}>{{ m }}</option>{% endfor %}</select>
+      <a class="btn btn-ghost btn-sm" href="?month={{ start|date:'Y-m' }}&export=csv">Export CSV</a>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="window.print()">Print / PDF</button>
+      <a class="btn btn-ghost btn-sm" href="{% url 'analytics' %}">← Analytics</a>
+    </form>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><span class="label">Patient payments</span><span class="value">{{ totals.gross|floatformat:0|intcomma }}</span><span class="sub">RWF collected online</span></div>
+    <div class="kpi"><span class="label">Commission</span><span class="value">{{ totals.commission|floatformat:0|intcomma }}</span><span class="sub">RWF kept by MedFinder</span></div>
+    <div class="kpi"><span class="label">Due to pharmacies</span><span class="value">{{ totals.share|floatformat:0|intcomma }}</span><span class="sub">RWF to pay out</span></div>
+    <div class="kpi"><span class="label">Your income</span><span class="value">{{ totals.income|floatformat:0|intcomma }}</span><span class="sub">commission + {{ totals.subscriptions|floatformat:0|intcomma }} subscriptions</span></div>
+  </div>
+  <div class="card">
+    <h2>Online payments by pharmacy</h2>
+    <div class="table-wrap">
+      <table class="table stack-mobile">
+        <thead><tr><th>Pharmacy</th><th>Provider</th><th class="num">Payments</th><th class="num">Gross (RWF)</th><th class="num">Commission (RWF)</th><th class="num">Pharmacy share (RWF)</th></tr></thead>
+        <tbody>
+        {% for r in rows %}
+          <tr><td data-label="Pharmacy">{{ r.pharmacy }}</td><td data-label="Provider">{% if r.provider == 'airtel' %}Airtel Money{% else %}MTN MoMo{% endif %}</td><td data-label="Payments" class="num">{{ r.n }}</td><td data-label="Gross (RWF)" class="num">{{ r.gross|floatformat:0|intcomma }}</td><td data-label="Commission (RWF)" class="num">{{ r.commission|floatformat:0|intcomma }}</td><td data-label="Pharmacy share (RWF)" class="num">{{ r.share|floatformat:0|intcomma }}</td></tr>
+        {% empty %}
+          <tr><td colspan="6" class="empty-row">No online payments this month.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>Subscription receipts</h2>
+    <div class="table-wrap">
+      <table class="table stack-mobile">
+        <thead><tr><th>Receipt</th><th>Pharmacy</th><th>Method</th><th>Period</th><th class="num">Amount (RWF)</th></tr></thead>
+        <tbody>
+        {% for s in subs %}
+          <tr><td data-label="Receipt">{{ s.invoice_number }}</td><td data-label="Pharmacy">{{ s.pharmacy.name }}</td><td data-label="Method">{{ s.get_method_display }}</td><td data-label="Period">{{ s.period_start|date:"d M" }} – {{ s.period_end|date:"d M Y" }}</td><td data-label="Amount (RWF)" class="num">{{ s.amount|floatformat:0|intcomma }}</td></tr>
+        {% empty %}
+          <tr><td colspan="5" class="empty-row">No subscription payments this month.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

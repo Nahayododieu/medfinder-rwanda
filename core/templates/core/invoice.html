@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+{% block title %}Invoice {{ p.invoice_number }}{% endblock %}
+{% block content %}
+<div class="narrow page" style="max-width:720px">
+  <p class="no-print" style="display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap">
+    <a class="btn btn-ghost btn-sm" href="{% url 'billing' %}">← Billing</a>
+    <button class="btn btn-sm" type="button" onclick="window.print()">Print / save as PDF</button>
+  </p>
+  <div class="card invoice">
+    <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>
+        <div class="brand-name" style="font-size:22px">MedFinder <span>Rwanda</span></div>
+        <p class="small" style="margin:4px 0 0">{% if biz.owner %}{{ biz.owner }}<br>{% endif %}{% if biz.rdb %}RDB company code {{ biz.rdb }}<br>{% endif %}{{ biz.phone }} · {{ biz.email }}</p>
+      </div>
+      <div style="text-align:right">
+        <h1 style="margin:0;font-size:24px">Receipt</h1>
+        <p class="small" style="margin:4px 0 0">No. <strong>{{ p.invoice_number }}</strong><br>Date {{ p.updated_at|date:"d M Y" }}</p>
+      </div>
+    </div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+    <p class="small" style="margin:0">Billed to</p>
+    <p style="margin:2px 0 0"><strong>{{ pharmacy.name }}</strong><br>{{ pharmacy.address|default:pharmacy.district }} · License {{ pharmacy.license_no }}</p>
+    <div class="table-wrap" style="margin-top:18px">
+      <table class="table">
+        <thead><tr><th>Description</th><th>Period</th><th class="num">Amount (RWF)</th></tr></thead>
+        <tbody>
+          <tr><td>MedFinder listing subscription, {{ p.months }} × 30 days</td><td>{{ p.period_start|date:"d M Y" }} – {{ p.period_end|date:"d M Y" }}</td><td class="num">{{ p.amount|floatformat:0|intcomma }}</td></tr>
+          <tr><td colspan="2"><strong>Total paid</strong></td><td class="num"><strong>{{ p.amount|floatformat:0|intcomma }}</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small" style="margin:16px 0 0">Paid by {{ p.get_method_display }}{% if p.payer_phone %} ({{ p.payer_phone }}){% endif %}{% if p.provider_reference and p.method != 'cash' %} · reference {{ p.provider_reference }}{% endif %}{% if p.simulated %} · test payment{% endif %}.</p>
+    <p class="small" style="margin:6px 0 0">Thank you for listing your pharmacy on {{ biz.name }}.</p>
+  </div>
+</div>
+{% endblock %}

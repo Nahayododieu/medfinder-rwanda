@@ -1,0 +1,7 @@
+{% if page.has_other_pages %}
+<nav class="pager" aria-label="Pages">
+  {% if page.has_previous %}<a class="btn btn-ghost btn-sm" href="?{% if params %}{{ params }}&{% endif %}page={{ page.previous_page_number }}" rel="prev">← {{ T.previous }}</a>{% endif %}
+  <span class="small">{{ T.showing }} {{ page.start_index }}–{{ page.end_index }} {{ T.of }} {{ page.paginator.count }}</span>
+  {% if page.has_next %}<a class="btn btn-ghost btn-sm" href="?{% if params %}{{ params }}&{% endif %}page={{ page.next_page_number }}" rel="next">{{ T.next }} →</a>{% endif %}
+</nav>
+{% endif %}

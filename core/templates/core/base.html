@@ -1,0 +1,347 @@
+{% load static %}<!DOCTYPE html>
+<html lang="{{ lang|default:'en' }}" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Find medicine availability and prices at verified pharmacies across Rwanda. Search, compare, reserve and pay with mobile money.">
+  <title>{% block title %}MedFinder Rwanda{% endblock %}</title>
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ biz.name }}">
+  <meta property="og:title" content="{% block og_title %}{{ biz.name }}: find medicine near you{% endblock %}">
+  <meta property="og:description" content="Find medicine availability and prices at verified pharmacies across Rwanda. Reserve and pay with MTN MoMo or Airtel Money.">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'core/icons/icon-512.png' %}">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23000000'/%3E%3Cpath d='M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4Z' fill='%23c0c0c0'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="{% static 'core/icons/icon-192.png' %}">
+  <link rel="manifest" href="{% url 'manifest' %}">
+  <script>try{var t=(location.search.match(/[?&]theme=(dark|light)\b/)||[])[1]||sessionStorage.getItem('medfinder-theme-v2');try{localStorage.removeItem('medfinder-theme');}catch(e){}document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){}</script>
+  <link rel="stylesheet" href="{% static 'core/css/site.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% if not user.is_authenticated %}has-bottom-nav{% endif %}">
+  <a class="skip-link" href="#main-content">{{ T.skip }}</a>
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="brand" href="{% url 'search' %}" aria-label="{{ biz.name }} homepage">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7V3Z" fill="currentColor"/></svg>
+        </span>
+        <span><span class="brand-name">MedFinder <span>Rwanda</span></span><span class="brand-caption">{{ T.brand_caption }}</span></span>
+      </a>
+      <button type="button" class="nav-toggle" id="navToggle" aria-controls="mainNav" aria-expanded="false" aria-label="Open menu">
+        <span class="nav-toggle-inner" aria-hidden="true"><span class="bar-line"></span><span class="bar-line"></span><span class="bar-line"></span></span>
+      </button>
+      <nav class="nav-links" id="mainNav" aria-label="Main navigation">
+        {% if user.is_authenticated %}
+          {% if user.pharmacy or user.pharmacy_staff %}<a href="{% url 'dashboard' %}">{{ T.nav_dashboard }}</a>{% endif %}
+          {% if user.is_staff %}
+            <a class="hide-sm" href="{% url 'analytics' %}">{{ T.nav_analytics }}</a>
+            <a class="hide-sm" href="{% url 'admin:index' %}">Admin</a>
+          {% endif %}
+          <form method="post" action="{% url 'logout' %}" class="nav-logout">{% csrf_token %}<button type="submit">{{ T.logout }}</button></form>
+        {% else %}
+          <a class="hide-sm{% if request.resolver_match.url_name == 'medicine_list' or request.resolver_match.url_name == 'medicine_detail' %} current{% endif %}" href="{% url 'medicine_list' %}">{{ T.nav_medicines }}</a>
+          <a class="hide-sm{% if request.resolver_match.url_name == 'pharmacy_list' or request.resolver_match.url_name == 'pharmacy_detail' %} current{% endif %}" href="{% url 'pharmacy_list' %}">{{ T.nav_find_pharmacy }}</a>
+          <a class="hide-sm{% if request.resolver_match.url_name == 'track' %} current{% endif %}" href="{% url 'track' %}">{{ T.nav_track }}</a>
+          <a class="hide-sm{% if request.resolver_match.url_name == 'help' %} current{% endif %}" href="{% url 'help' %}">{{ T.nav_help }}</a>
+          <details class="nav-more">
+            <summary>{{ T.nav_more }} <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+            <div class="more-panel">
+              <div class="more-col">
+                <h2>{{ T.more_patients }}</h2>
+                <a href="{% url 'pharmacy_list' %}?open_now=1">{{ T.qa_open_now }}</a>
+                <a href="{% url 'pharmacy_list' %}?h24=1">{{ T.qa_24h }}</a>
+                <a href="{% url 'my_reservations' %}">{{ T.nav_my }}</a>
+                <a href="{% url 'basket' %}">{{ T.nav_basket }}</a>
+                <a href="{% url 'help' %}#faq-title">{{ T.faq_short }}</a>
+                <a href="{% url 'help' %}#ussd-help-title">{{ T.ussd_short }}</a>
+              </div>
+              <div class="more-col">
+                <h2>{{ T.more_pharmacies }}</h2>
+                <a href="{% url 'for_pharmacies' %}">{{ T.cta_pricing }}</a>
+                <a href="{% url 'register' %}">{{ T.cta_register }}</a>
+                <a href="{% url 'developers' %}">API</a>
+              </div>
+              <div class="more-col">
+                <h2>{{ T.more_company }}</h2>
+                <a href="{% url 'about' %}">{{ T.nav_about }}</a>
+                <a href="{% url 'contact' %}">{{ T.nav_contact }}</a>
+                <a href="{% url 'status' %}">{{ T.nav_status }}</a>
+                <a href="{% url 'terms' %}">{{ T.footer_terms }}</a>
+                <a href="{% url 'privacy' %}">{{ T.footer_privacy }}</a>
+              </div>
+            </div>
+          </details>
+          <a class="nav-cta" href="{% url 'login' %}">{{ T.nav_login }} <span aria-hidden="true">→</span></a>
+        {% endif %}
+        <details class="lang-menu">
+          <summary aria-label="Language · Ururimi · Langue: {{ current_language.1 }}">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            <span class="lang-current">{{ current_language.1 }}</span>
+            <svg class="lang-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </summary>
+          <div class="lang-panel">
+            <div class="lang-head">
+              <p class="lang-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg> Choose language</p>
+              <p class="lang-sub"><span lang="rw">Hitamo ururimi</span> · <span lang="fr">Choisir la langue</span></p>
+            </div>
+            {% for code, native, english in language_menu %}
+            <a href="{% url 'set_language' code %}?next={{ request.get_full_path|urlencode }}" lang="{{ code }}" hreflang="{{ code }}" class="lang-option{% if lang == code %} active{% endif %}"{% if lang == code %} aria-current="true"{% endif %}>
+              <span class="lang-names"><strong>{{ native }}</strong>{% if english != native %}<small>{{ english }}</small>{% endif %}</span>
+              {% if lang == code %}<svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>{% endif %}
+            </a>
+            {% endfor %}
+          </div>
+        </details>
+      </nav>
+      <div class="header-tools">
+        {% if not user.is_authenticated %}
+        <a class="tool-btn basket-btn{% if request.resolver_match.url_name == 'basket' %} current{% endif %}" href="{% url 'basket' %}" aria-label="{{ T.nav_basket }}{% if basket_count %} ({{ basket_count }}){% endif %}" title="{{ T.nav_basket }}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L20.5 8H6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.3" fill="currentColor"/><circle cx="17" cy="20" r="1.3" fill="currentColor"/></svg>
+          {% if basket_count %}<span class="basket-count">{{ basket_count }}</span>{% endif %}
+        </a>
+        {% endif %}
+        <button type="button" class="tool-btn theme-btn" id="themeToggle" aria-label="{{ T.theme_toggle }}" title="{{ T.theme_toggle }}">
+          <svg class="i-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <svg class="i-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    {% block messages %}
+    {% if messages %}
+    <div class="container message-list" aria-live="polite">
+      {% for m in messages %}<div class="message {{ m.tags }}" role="status">{{ m }}</div>{% endfor %}
+    </div>
+    {% endif %}
+    {% endblock %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="emergency-strip">
+      <div class="container emergency-inner">
+        <strong>{{ T.emergency_title }}</strong>
+        <span class="emergency-numbers">
+          <a href="tel:912">{{ T.emergency_ambulance }} <b>912</b></a>
+          <a href="tel:112">{{ T.emergency_police }} <b>112</b></a>
+          <a href="tel:114">{{ T.emergency_health }} <b>114</b></a>
+        </span>
+      </div>
+    </div>
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="{% url 'search' %}">
+          <span class="brand-mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7V3Z" fill="currentColor"/></svg></span>
+          <span class="brand-name">MedFinder <span>Rwanda</span></span>
+        </a>
+        <p>{{ T.footer_tagline }}</p>
+        <p class="footer-ussd">{{ T.footer_ussd }} <strong>{{ ussd_code }}</strong></p>
+      </div>
+      <nav class="footer-col" aria-label="{{ T.nav_for_patients }}">
+        <h2>{{ T.nav_for_patients }}</h2>
+        <a href="{% url 'search' %}">{{ T.search_button }}</a>
+        <a href="{% url 'medicine_list' %}">{{ T.nav_medicines }}</a>
+        <a href="{% url 'pharmacy_list' %}">{{ T.nav_find_pharmacy }}</a>
+        <a href="{% url 'track' %}">{{ T.nav_track }}</a>
+        <a href="{% url 'help' %}">{{ T.nav_help }}</a>
+      </nav>
+      <nav class="footer-col" aria-label="{{ T.nav_pharmacies }}">
+        <h2>{{ T.nav_pharmacies }}</h2>
+        <a href="{% url 'for_pharmacies' %}">{{ T.cta_pricing }}</a>
+        <a href="{% url 'register' %}">{{ T.cta_register }}</a>
+        <a href="{% url 'login' %}">{{ T.nav_login }}</a>
+        <a href="{% url 'developers' %}">API</a>
+      </nav>
+      <nav class="footer-col" aria-label="{{ T.nav_company }}">
+        <h2>{{ T.nav_company }}</h2>
+        <a href="{% url 'about' %}">{{ T.nav_about }}</a>
+        <a href="{% url 'contact' %}">{{ T.nav_contact }}</a>
+        <a href="{% url 'status' %}">{{ T.nav_status }}</a>
+        <a href="{% url 'terms' %}">{{ T.footer_terms }}</a>
+        <a href="{% url 'privacy' %}">{{ T.footer_privacy }}</a>
+      </nav>
+    </div>
+    <div class="container footer-bottom">
+      <p>© {% now "Y" %} {{ biz.name }}{% if biz.owner %} · {{ biz.owner }}{% endif %}{% if biz.rdb %} · RDB {{ biz.rdb }}{% endif %}</p>
+      <p><a href="tel:{{ biz.phone|cut:' ' }}">{{ biz.phone }}</a> · <a href="mailto:{{ biz.email }}">{{ biz.email }}</a>{% if biz.whatsapp %} · <a href="https://wa.me/{{ biz.whatsapp }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}{% for name, url in biz.social.items %} · <a href="{{ url }}" target="_blank" rel="noopener">{{ name }}</a>{% endfor %}</p>
+    </div>
+  </footer>
+  {% if not user.is_authenticated %}
+  {% with n=request.resolver_match.url_name %}
+  <nav class="bottom-nav" aria-label="{{ T.quick_title }}">
+    <a href="{% url 'search' %}" class="{% if n == 'search' %}active{% endif %}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.9"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><span>{{ T.bottom_search }}</span></a>
+    <a href="{% url 'medicine_list' %}" class="{% if n == 'medicine_list' or n == 'medicine_detail' %}active{% endif %}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-45 12 12)" stroke="currentColor" stroke-width="1.9"/><path d="m9.5 9.5 5 5" stroke="currentColor" stroke-width="1.9"/></svg><span>{{ T.nav_medicines }}</span></a>
+    <a href="{% url 'pharmacy_list' %}" class="{% if n == 'pharmacy_list' or n == 'pharmacy_detail' %}active{% endif %}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.9"/><path d="M12 7v6M9 10h6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><span>{{ T.nav_find_pharmacy }}</span></a>
+    <a href="{% url 'track' %}" class="{% if n == 'track' %}active{% endif %}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.9"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><span>{{ T.qa_track }}</span></a>
+    <a href="{% url 'help' %}" class="{% if n == 'help' %}active{% endif %}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="17" r="1.1" fill="currentColor"/></svg><span>{{ T.nav_help }}</span></a>
+  </nav>
+  {% endwith %}
+  {% endif %}
+
+  <details class="fab">
+    <summary aria-label="{{ T.fab_label }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 1 3.3 6.5L4 20l1.2-3.3A8 8 0 0 1 4 12Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.3 2.2c-.6.3-.9.7-.9 1.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="15.6" r="1" fill="currentColor"/></svg><span class="fab-text">{{ T.fab_label }}</span></summary>
+    <div class="fab-panel">
+      <strong>{{ T.fab_label }}</strong>
+      <a href="tel:{{ biz.phone|cut:' ' }}"><span class="fab-ico" aria-hidden="true">📞</span><span>{{ T.fab_call }}<small>{{ biz.phone }}</small></span></a>
+      {% if biz.whatsapp %}<a href="https://wa.me/{{ biz.whatsapp }}" target="_blank" rel="noopener"><span class="fab-ico" aria-hidden="true">💬</span><span>{{ T.fab_whatsapp }}</span></a>{% endif %}
+      <a href="mailto:{{ biz.email }}"><span class="fab-ico" aria-hidden="true">✉️</span><span>{{ T.fab_email }}</span></a>
+      <a href="{% url 'help' %}"><span class="fab-ico" aria-hidden="true">❓</span><span>{{ T.qa_help }}</span></a>
+      <a class="fab-emergency" href="tel:912"><span class="fab-ico" aria-hidden="true">🚑</span><span>{{ T.qa_emergency_sub }}</span></a>
+    </div>
+  </details>
+  <button type="button" class="to-top" id="toTop" aria-label="{{ T.back_to_top }}" title="{{ T.back_to_top }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 14 6-6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
+  <script>
+  (function () {
+    var header = document.querySelector('.site-header');
+    // Header shadow and back-to-top button
+    var toTop = document.getElementById('toTop');
+    var onScroll = function () {
+      var y = window.scrollY || 0;
+      header.classList.toggle('scrolled', y > 8);
+      toTop.classList.toggle('show', y > 700);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    toTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    // Close the "More" menu and the help button when clicking elsewhere or pressing Escape
+    var popups = document.querySelectorAll('.nav-more, .fab, .lang-menu');
+    document.addEventListener('click', function (e) {
+      popups.forEach(function (d) { if (d.open && !d.contains(e.target)) d.open = false; });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') popups.forEach(function (d) { d.open = false; });
+    });
+    // Reveal-on-scroll and number counters (skipped when the user prefers reduced motion)
+    var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!calm && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          en.target.classList.add('in');
+          io.unobserve(en.target);
+        });
+      }, { rootMargin: '0px 0px -30px 0px' });
+      document.querySelectorAll('.quick-tile, .stat, .step-card, .category-card, .medicine-card, .result-card, .page .card, .faq-list details, .cta-panel, .trust-item').forEach(function (el) {
+        var i = el.parentElement ? Array.prototype.indexOf.call(el.parentElement.children, el) : 0;
+        el.style.setProperty('--d', Math.min(i, 8) * 45 + 'ms');
+        el.classList.add('reveal');
+        io.observe(el);
+      });
+      var cio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          cio.unobserve(en.target);
+          var el = en.target, end = parseInt(el.dataset.count, 10) || 0, t0 = null;
+          var step = function (ts) {
+            if (!t0) t0 = ts;
+            var p = Math.min((ts - t0) / 900, 1);
+            el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3)));
+            if (p < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        });
+      });
+      document.querySelectorAll('[data-count]').forEach(function (c) { cio.observe(c); });
+    }
+    var toggle = document.getElementById('navToggle');
+    if (toggle) {
+      var setOpen = function (open) {
+        header.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      };
+      toggle.addEventListener('click', function () { setOpen(!header.classList.contains('open')); });
+      document.getElementById('mainNav').addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+      window.addEventListener('resize', function () { if (window.innerWidth > 760) setOpen(false); });
+    }
+    // Prevent double submits (e.g. pressing "Check payment" twice): once a POST form is
+    // really submitted, disable its buttons. Runs after page handlers such as confirm dialogs.
+    document.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (e.defaultPrevented || (form.method || '').toLowerCase() !== 'post' || form.dataset.allowResubmit) return;
+      setTimeout(function () {
+        form.querySelectorAll('button[type="submit"], button:not([type])').forEach(function (b) {
+          b.disabled = true;
+          b.setAttribute('aria-busy', 'true');
+        });
+      }, 0);
+    });
+    window.addEventListener('pageshow', function (e) {  // re-enable after the Back button
+      if (e.persisted) document.querySelectorAll('button[aria-busy="true"]').forEach(function (b) {
+        b.disabled = false; b.removeAttribute('aria-busy');
+      });
+    });
+    // Light / dark mode (remembered on this device)
+    var themeBtn = document.getElementById('themeToggle');
+    if (themeBtn) themeBtn.addEventListener('click', function () {
+      var root = document.documentElement;
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { sessionStorage.setItem('medfinder-theme-v2', next); } catch (e) {}
+    });
+    // Pickup or home delivery: show the address field only for delivery
+    document.addEventListener('change', function (e) {
+      if (!e.target.matches('.delivery-choice input[name="delivery"]')) return;
+      var box = e.target.closest('.delivery-choice'), addr = box.querySelector('.delivery-address');
+      var on = e.target.value === '1' && e.target.checked;
+      if (!addr) return;
+      addr.hidden = !on;
+      var input = addr.querySelector('input');
+      if (input) { input.required = on; if (on) input.focus(); }
+    });
+    // Share (phone share sheet when available) and copy link
+    document.querySelectorAll('[data-share-url]').forEach(function (b) {
+      if (!navigator.share) return;
+      b.hidden = false;
+      b.addEventListener('click', function () {
+        navigator.share({ title: document.title, text: b.dataset.shareText, url: b.dataset.shareUrl }).catch(function () {});
+      });
+    });
+    document.querySelectorAll('[data-copy-url]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var label = b.querySelector('span'), old = label.textContent;
+        var done = function () { label.textContent = b.dataset.done; setTimeout(function () { label.textContent = old; }, 2000); };
+        if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copyUrl).then(done).catch(function () {});
+        else { var t = document.createElement('textarea'); t.value = b.dataset.copyUrl; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} t.remove(); }
+      });
+    });
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () { navigator.serviceWorker.register('{% url "service_worker" %}').catch(function () {}); });
+    }
+  })();
+  </script>
+  <div class="star-field" id="starField" aria-hidden="true"></div>
+  <script>
+  // Small colourful twinkling stars in the page background
+  (function () {
+    var field = document.getElementById('starField');
+    if (!field) return;
+    var colors = ['#a8a8a8', '#3a3a3a', '#a8a8a8', '#a8a8a8', '#a8a8a8', '#a8a8a8', '#a8a8a8', '#3a3a3a'];
+    var count = window.innerWidth < 760 ? 18 : 40;
+    for (var i = 0; i < count; i++) {
+      var s = document.createElement('span');
+      var size = 6 + Math.random() * 7;
+      s.className = 'star';
+      s.style.left = (Math.random() * 98) + '%';
+      s.style.top = (Math.random() * 96) + '%';
+      s.style.width = s.style.height = size.toFixed(1) + 'px';
+      s.style.setProperty('--c', colors[i % colors.length]);
+      s.style.setProperty('--tw', (2.5 + Math.random() * 3).toFixed(2) + 's');
+      s.style.setProperty('--dr', (10 + Math.random() * 14).toFixed(2) + 's');
+      s.style.setProperty('--dx', (Math.random() * 60 - 30).toFixed(0) + 'px');
+      s.style.setProperty('--dy', (Math.random() * 60 - 30).toFixed(0) + 'px');
+      s.style.animationDelay = (-Math.random() * 10).toFixed(2) + 's, ' + (-Math.random() * 20).toFixed(2) + 's';
+      field.appendChild(s);
+    }
+  })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

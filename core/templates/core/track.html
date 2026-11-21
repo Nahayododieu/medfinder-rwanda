@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ T.track_title }} · MedFinder Rwanda{% endblock %}
+{% block content %}
+<div class="narrow page">
+  <div class="page-head"><div><h1>{{ T.track_title }}</h1><p>{{ T.track_copy }}</p></div></div>
+  <div class="card">
+    {% if not_found %}<p class="alert alert-red">{{ T.track_not_found }}</p>{% endif %}
+    <form method="get" class="form-grid">
+      <div class="field">
+        <label for="id_reservation">{{ T.reservation_no }}</label>
+        <input type="number" name="reservation" id="id_reservation" min="1" value="{{ form.reservation.value|default:'' }}" required>
+        {% for e in form.reservation.errors %}<div class="err">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="field">
+        <label for="id_code">{{ T.pickup_code }}</label>
+        <input type="text" name="code" id="id_code" inputmode="numeric" maxlength="6" pattern="\d{6}" value="{{ form.code.value|default:'' }}" required>
+        {% for e in form.code.errors %}<div class="err">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="full"><button class="btn" type="submit">{{ T.track_button }}</button></div>
+    </form>
+  </div>
+  <p class="small" style="margin-top:16px">{{ T.footer_ussd }} <strong>{{ ussd_code }}</strong> → 2.</p>
+</div>
+{% endblock %}

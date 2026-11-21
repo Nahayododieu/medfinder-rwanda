@@ -1,0 +1,63 @@
+{% extends 'core/base.html' %}
+{% block title %}Pharmacy details · MedFinder Rwanda{% endblock %}
+{% block content %}
+<div class="narrow page" style="max-width:720px">
+  <div class="page-head"><div><h1>Pharmacy details</h1><p>License {{ pharmacy.license_no }}. Contact the administrator to change the license number.</p></div></div>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<p class="alert alert-red">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+    <div class="card">
+      <h2>Contact</h2>
+      <div class="form-grid">
+        {% include 'core/_field.html' with f=form.name full=True %}
+        {% include 'core/_field.html' with f=form.district %}
+        {% include 'core/_field.html' with f=form.phone %}
+        {% include 'core/_field.html' with f=form.email %}
+        {% include 'core/_field.html' with f=form.address %}
+      </div>
+    </div>
+    <div class="card">
+      <h2>Opening hours</h2>
+      <p class="small">Patients see "Open now" or "Closed" next to your pharmacy in search results.</p>
+      <div class="form-grid">
+        {% include 'core/_field.html' with f=form.open_24h full=True %}
+        {% include 'core/_field.html' with f=form.opens_at %}
+        {% include 'core/_field.html' with f=form.closes_at %}
+      </div>
+    </div>
+    <div class="card">
+      <h2>Home delivery</h2>
+      <p class="small">When you deliver, patients can choose delivery and give their address at checkout. The fee is added once per order.</p>
+      <div class="form-grid">
+        {% include 'core/_field.html' with f=form.offers_delivery full=True %}
+        {% include 'core/_field.html' with f=form.delivery_fee %}
+        {% include 'core/_field.html' with f=form.delivery_area %}
+      </div>
+    </div>
+    <div class="card">
+      <h2>Insurance accepted</h2>
+      <p class="small">Patients filter pharmacies by the insurance they use.</p>
+      <div class="field">
+        <div class="check-grid">{% for cb in form.insurer_list %}<label class="filter-check">{{ cb.tag }} {{ cb.choice_label }}</label>{% endfor %}</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>License</h2>
+      <p class="small">{% if pharmacy.license_document %}A license document is on file. The administrator checks it before verifying your pharmacy.{% else %}No license document yet. Upload it to get verified.{% endif %}</p>
+      {% include 'core/_field.html' with f=form.license_document %}
+    </div>
+    <div class="card">
+      <h2>Map location</h2>
+      <div class="form-grid">
+        {% include 'core/_field.html' with f=form.latitude %}
+        {% include 'core/_field.html' with f=form.longitude %}
+      </div>
+    </div>
+    <p style="margin:16px 0 0;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" type="submit">Save changes</button>
+      <a class="btn btn-ghost" href="{% url 'dashboard' %}">Cancel</a>
+      <a class="btn btn-ghost" href="{% url 'password_change' %}">Change password</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

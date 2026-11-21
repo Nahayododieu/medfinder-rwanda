@@ -1,0 +1,122 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+{% block title %}Analytics · MedFinder Rwanda{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Administrator</span>
+      <h1>Demand analytics</h1>
+      <p>Anonymous search and reservation data, last {{ days }} days.</p>
+    </div>
+    <div class="inline-form">
+      <div class="sort-tabs" role="group" aria-label="Time range">
+        <a href="?days=7" class="{% if days == 7 %}active{% endif %}">7 days</a>
+        <a href="?days=30" class="{% if days == 30 %}active{% endif %}">30 days</a>
+        <a href="?days=90" class="{% if days == 90 %}active{% endif %}">90 days</a>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="{% url 'analytics_export' %}">Export CSV</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'commission_report' %}">Commission report</a>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="window.print()">Print / PDF</button>
+      <a class="btn btn-ghost btn-sm" href="{% url 'tool_ussd' %}">USSD simulator</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'tool_sms' %}">SMS outbox</a>
+    </div>
+  </div>
+
+  {% if s.kpi.pending_pharmacies %}
+  <p class="alert alert-amber">{{ s.kpi.pending_pharmacies }} pharmac{{ s.kpi.pending_pharmacies|pluralize:"y is,ies are" }} waiting for verification.
+    <a class="link" href="{% url 'admin:core_pharmacy_changelist' %}?verified__exact=0">Review in admin →</a></p>
+  {% endif %}
+
+  <div class="kpis">
+    <div class="kpi"><span class="label">Searches</span><span class="value">{{ s.kpi.searches|intcomma }}</span><span class="sub">Web {{ s.by_channel.web }} · USSD {{ s.by_channel.ussd }}</span></div>
+    <div class="kpi"><span class="label">Found rate</span><span class="value">{{ s.kpi.found_rate }}%</span><span class="sub">Searches with at least one pharmacy</span></div>
+    <div class="kpi"><span class="label">Reservations</span><span class="value">{{ s.kpi.reservations|intcomma }}</span><span class="sub">{{ s.kpi.pickup_rate }}% picked up · {{ s.kpi.cancelled }} cancelled</span></div>
+    <div class="kpi"><span class="label">MoMo payments</span><span class="value">{{ s.kpi.paid_sum|floatformat:0|intcomma }}</span><span class="sub">RWF · commission {{ s.kpi.commission|floatformat:0|intcomma }} RWF</span></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head">
+      <div><h2>Pharmacy subscriptions</h2><p class="small">Monthly recurring revenue counts paid, active pharmacies at {{ biz.price|intcomma }} RWF.</p></div>
+      <a class="btn btn-ghost btn-sm" href="{% url 'admin:core_pharmacy_changelist' %}?subscription=grace">Who must pay →</a>
+    </div>
+    <div class="kpis" style="margin:0">
+      <div class="kpi"><span class="label">Free trial</span><span class="value">{{ subs.counts.trial }}</span><span class="sub">pharmacies</span></div>
+      <div class="kpi"><span class="label">Paid, active</span><span class="value">{{ subs.counts.active }}</span><span class="sub">MRR {{ subs.mrr|intcomma }} RWF</span></div>
+      <div class="kpi"><span class="label">Payment due / overdue</span><span class="value">{{ subs.counts.grace }} / {{ subs.counts.overdue }}</span><span class="sub">in grace / past grace</span></div>
+      <div class="kpi"><span class="label">Subscription revenue</span><span class="value">{{ subs.revenue_30d|floatformat:0|intcomma }}</span><span class="sub">RWF, last 30 days</span></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="chart-meta"><h2>Searches per day</h2><span class="peak">{{ s.kpi.pharmacies }} verified pharmacies</span></div>
+      {% include 'core/_bars.html' with bars=s.search_bars unit='searches' title='Searches' %}
+    </div>
+    <div class="card">
+      <div class="chart-meta"><h2>Reservations per day</h2><span class="peak">{{ s.kpi.pickups }} pickups</span></div>
+      {% include 'core/_bars.html' with bars=s.reservation_bars unit='reservations' title='Reservations' %}
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-head">
+      <div><h2>Shortage forecast, next 7 days</h2>
+        <p class="small">Linear trend fitted to the last 28 days of searches per medicine, compared with stock currently listed by verified pharmacies.</p></div>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Medicine</th><th class="num">Searches (28 d)</th><th class="num">Not found</th><th>Trend</th><th class="num">Forecast searches (7 d)</th><th class="num">Units in stock</th><th class="num">Pharmacies</th><th>Risk</th></tr></thead>
+        <tbody>
+        {% for f in s.forecast %}
+          <tr>
+            <td>{{ f.medicine }}</td>
+            <td class="num">{{ f.searches }}</td>
+            <td class="num">{{ f.unmet_pct }}%</td>
+            <td>{% if f.trend == 'up' %}↗ Rising{% elif f.trend == 'down' %}↘ Falling{% else %}→ Stable{% endif %}</td>
+            <td class="num">{{ f.forecast }}</td>
+            <td class="num">{{ f.stock|intcomma }}</td>
+            <td class="num">{{ f.pharmacies }}</td>
+            <td>{% if f.risk == 'high' %}<span class="badge badge-red">High</span>{% elif f.risk == 'medium' %}<span class="badge badge-amber">Medium</span>{% else %}<span class="badge badge-green">Low</span>{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="empty-row">Not enough search data yet. Forecasts appear once patients start searching.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="small" style="margin:10px 0 0">Risk is <strong>High</strong> when no stock is listed or at least half of searches find nothing; <strong>Medium</strong> when listed units are below forecast demand or 20% or more of searches fail.</p>
+  </div>
+
+  <div class="grid-2" style="margin-top:16px">
+    <div class="card">
+      <h2>Most searched</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Search term</th><th class="num">Searches</th><th>Found</th></tr></thead>
+          <tbody>
+          {% for r in s.top_searched %}
+            <tr><td>{{ r.query }}</td><td class="num">{{ r.total }}</td>
+              <td><div class="hbar"><span class="hbar-track"><span class="hbar-fill" style="width:{{ r.found_pct }}%"></span></span><span class="small">{{ r.found_pct }}%</span></div></td></tr>
+          {% empty %}<tr><td colspan="3" class="empty-row">No searches yet.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Unmet demand by district</h2>
+      <p class="small">Searches that found no pharmacy: signals for suppliers and planners.</p>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Search term</th><th>District</th><th class="num">Not found</th></tr></thead>
+          <tbody>
+          {% for r in s.unmet %}
+            <tr><td>{{ r.query }}</td><td>{{ r.district|default:"Unknown" }}</td><td class="num">{{ r.total }}</td></tr>
+          {% empty %}<tr><td colspan="3" class="empty-row">No unmet searches.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

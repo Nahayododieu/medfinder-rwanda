@@ -1,0 +1,38 @@
+{% extends 'core/base.html' %}
+{% block title %}About · {{ biz.name }}{% endblock %}
+{% block content %}
+<section class="hero" style="padding-bottom:36px">
+  <div class="container hero-content">
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.nav_about }}</span>
+    <h1 style="font-size:clamp(34px,5vw,56px)">No patient should walk<br><span>from pharmacy to pharmacy.</span></h1>
+    <p class="hero-copy">{{ biz.name }} shows which pharmacies in Rwanda have a medicine in stock right now, so patients find it on the first trip, and pharmacies serve the patients who need them.</p>
+  </div>
+</section>
+<div class="container page" style="max-width:900px;padding-top:0">
+  <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="kpi"><span class="label">Verified pharmacies</span><span class="value">{{ stats.pharmacies }}</span></div>
+    <div class="kpi"><span class="label">Medicines in catalogue</span><span class="value">{{ stats.medicines }}</span></div>
+    <div class="kpi"><span class="label">Districts covered</span><span class="value">{{ stats.districts }}</span></div>
+  </div>
+  <div class="card prose">
+    <h2 style="margin-top:0">Our mission</h2>
+    <p>Make every medicine in Rwanda easy to find: on a smartphone, on a basic phone by USSD, in Kinyarwanda, English or French.</p>
+    <h2>The problem we solve</h2>
+    <p>Today a patient with a prescription often visits or phones several pharmacies before finding the medicine, losing time and transport money and sometimes delaying treatment. Pharmacies, meanwhile, cannot see the demand they are missing.</p>
+    <h2>How we work</h2>
+    <ul>
+      <li><strong>Verified pharmacies only.</strong> We check every pharmacy's Rwanda FDA license before it appears.</li>
+      <li><strong>Live stock and prices.</strong> Pharmacies update stock from a dashboard, Excel, SMS or USSD.</li>
+      <li><strong>Reserve and collect.</strong> Patients reserve with a phone number and collect with an SMS code; payment at the counter or by mobile money.</li>
+      <li><strong>Privacy first.</strong> Patients give only a phone number. Demand statistics are anonymous.</li>
+      <li><strong>No medical advice.</strong> We inform; pharmacists advise and dispense.</li>
+    </ul>
+    <h2>Who we are</h2>
+    <p>{{ biz.name }}{% if founder %} was founded by {{ founder }}{% endif %}{% if biz.owner %} and is operated by {{ biz.owner }}{% endif %}{% if biz.rdb %} (RDB company code {{ biz.rdb }}){% endif %}. We are a Rwandan health-technology service working with independent pharmacies.</p>
+  </div>
+  <div class="cta-panel" style="margin-top:20px">
+    <div><h2>Work with us</h2><p>Pharmacies, suppliers, insurers and health programmes: we would like to hear from you.</p></div>
+    <div class="cta-actions"><a class="cta-link" href="{% url 'contact' %}">{{ T.nav_contact }} →</a><a class="cta-link outline" href="{% url 'for_pharmacies' %}">{{ T.nav_pharmacies }}</a></div>
+  </div>
+</div>
+{% endblock %}

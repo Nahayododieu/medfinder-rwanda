@@ -1,0 +1,99 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ medicine.name }}: price and availability in Rwanda · {{ biz.name }}{% endblock %}
+{% block og_title %}{{ medicine.name }}: where to find it in Rwanda{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><a href="{% url 'medicine_list' %}">{{ T.nav_medicines }}</a>{% if medicine.category %}<span aria-hidden="true">/</span><a href="{% url 'medicine_list' %}?category={{ medicine.category|urlencode }}">{{ medicine.category }}</a>{% endif %}<span aria-hidden="true">/</span><span aria-current="page">{{ medicine.name }}</span></nav>
+    <h1>{{ medicine.name }}</h1>
+    <div class="badge-row">
+      {% if medicine.requires_prescription %}<span class="badge badge-amber">{{ T.rx_needed }}</span>{% else %}<span class="badge badge-green">{{ T.otc }}</span>{% endif %}
+      {% if total %}<span class="badge badge-blue">{{ T.available_at }} {{ total }} {% if total == 1 %}{{ T.pharmacy_word }}{% else %}{{ T.pharmacies_word }}{% endif %}</span>
+      {% else %}<span class="badge badge-gray">{{ T.not_available }}</span>{% endif %}
+    </div>
+    <dl class="fact-row">
+      {% if medicine.generic_name %}<div><dt>{{ T.generic_label }}</dt><dd>{{ medicine.generic_name }}</dd></div>{% endif %}
+      {% if medicine.category %}<div><dt>{{ T.category_label }}</dt><dd>{{ medicine.category }}</dd></div>{% endif %}
+    </dl>
+    {% if total %}
+    <form method="get" action="{% url 'search' %}#results" class="inline-form compare-form">
+      <input type="hidden" name="q" value="{{ medicine.name }}">
+      <label class="sr-only" for="cmp-district">District</label>
+      <select name="district" id="cmp-district"><option value="">{{ T.all_districts }}</option>
+        {% for value, label in districts %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <button class="btn" type="submit">{{ T.compare_pharmacies }} →</button>
+    </form>
+    {% endif %}
+    {% with share_text=T.share_medicine_text|add:" "|add:medicine.name %}{% include 'core/_share.html' %}{% endwith %}
+  </div>
+</section>
+
+<div class="container page" style="padding-top:24px">
+  {% if medicine.requires_prescription %}<p class="alert alert-amber" style="margin-bottom:16px">{{ T.rx_note }}</p>{% endif %}
+  {% if medicine.reference_price is not None and medicine.reference_source and medicine.reference_date %}
+  <p class="message" style="margin-bottom:16px"><strong>{{ T.reference_price }}:</strong> {{ medicine.reference_price|floatformat:0 }} RWF{% if medicine.reference_unit %} {{ medicine.reference_unit }}{% endif %} · {{ T.source }}: {{ medicine.reference_source }}, {{ medicine.reference_date|date:"d M Y" }}.<br><span class="small">{{ T.reference_price_note }}</span></p>
+  {% endif %}
+
+  {% if total %}
+  <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="kpi"><span class="label">{{ T.lowest_price }}</span><span class="value">{{ prices.low|floatformat:0 }} <small>RWF</small></span></div>
+    <div class="kpi"><span class="label">{{ T.average_price }}</span><span class="value">{{ prices.avg|floatformat:0 }} <small>RWF</small></span></div>
+    <div class="kpi"><span class="label">{{ T.highest_price }}</span><span class="value">{{ prices.high|floatformat:0 }} <small>RWF</small></span></div>
+  </div>
+
+  <div class="grid-main">
+    <section class="card" aria-labelledby="where-title">
+      <div class="card-head"><h2 id="where-title">{{ T.where_available }}</h2><span class="small">{{ T.sorted_price }}</span></div>
+      <div class="table-wrap">
+        <table class="table stack-mobile">
+          <thead><tr><th>{{ T.nav_find_pharmacy }}</th><th class="num">{{ T.price_from_to }}</th><th></th></tr></thead>
+          <tbody>
+            {% for i in items %}
+            <tr>
+              <td data-label="{{ T.nav_find_pharmacy }}"><a class="link" href="{% url 'pharmacy_detail' i.pharmacy_id %}">{{ i.pharmacy.name }}</a><br><span class="small">{{ i.pharmacy.district }}{% if i.pharmacy.is_open_now is True %} · {{ T.open_now }}{% elif i.pharmacy.is_open_now is False %} · {{ T.closed_now }}{% endif %}</span></td>
+              <td class="num" data-label="{{ T.price_from_to }}"><strong>{{ i.price|floatformat:0 }} RWF</strong></td>
+              <td data-label=""><a class="btn btn-sm" href="{% url 'search' %}?q={{ medicine.name|urlencode }}&district={{ i.pharmacy.district|urlencode }}#item-{{ i.pk }}">{{ T.reserve }}</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if total > items|length %}<p style="margin:14px 0 0"><a class="link" href="{% url 'search' %}?q={{ medicine.name|urlencode }}#results">{{ T.compare_pharmacies }} ({{ total }}) →</a></p>{% endif %}
+    </section>
+    <aside class="card" aria-labelledby="district-title">
+      <h2 id="district-title">{{ T.by_district }}</h2>
+      <ul class="district-list">
+        {% for d in by_district %}
+        <li><a href="{% url 'search' %}?q={{ medicine.name|urlencode }}&district={{ d.district|urlencode }}#results"><span>{{ d.district }}</span><span class="small">{{ d.n }} · {{ T.from_price }} {{ d.low|floatformat:0 }} RWF</span></a></li>
+        {% endfor %}
+      </ul>
+    </aside>
+  </div>
+  {% else %}
+  {% include 'core/_stock_alert_form.html' %}
+  {% endif %}
+
+  {% if alternatives %}
+  <section style="margin-top:28px" aria-labelledby="alt-title">
+    <h2 id="alt-title" class="section-title">{{ T.same_ingredient }}</h2>
+    <div class="medicine-grid">
+      {% for m in alternatives %}
+      <a class="medicine-card" href="{% url 'medicine_detail' m.pk %}">
+        <span class="medicine-card-top"><strong>{{ m.name }}</strong>{% if m.requires_prescription %}<span class="tag">Rx</span>{% endif %}</span>
+        {% if m.saving %}<span class="save-badge">{% if forloop.first and m.cheapest %}{{ T.cheapest_option }} · {% endif %}{{ T.save_word }} {{ m.saving|floatformat:0 }} RWF</span>{% endif %}
+        {% if m.generic_name %}<span class="small">{{ m.generic_name }}</span>{% endif %}
+        <span class="medicine-card-foot">
+          {% if m.pharmacy_count %}<span class="avail ok">{{ T.available_at }} {{ m.pharmacy_count }} {% if m.pharmacy_count == 1 %}{{ T.pharmacy_word }}{% else %}{{ T.pharmacies_word }}{% endif %}</span><span class="from">{{ T.from_price }} <strong>{{ m.min_price|floatformat:0 }} RWF</strong></span>
+          {% else %}<span class="avail none">{{ T.not_available }}</span>{% endif %}
+        </span>
+      </a>
+      {% endfor %}
+    </div>
+    <p class="small" style="margin-top:10px">{{ T.tip_3 }}</p>
+  </section>
+  {% endif %}
+
+  <p class="health-note" style="margin-top:28px">{{ T.health_note }}</p>
+</div>
+{% endblock %}

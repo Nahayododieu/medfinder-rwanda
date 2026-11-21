@@ -1,0 +1,373 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if query %}{{ query }} · {% endif %}MedFinder Rwanda | {{ T.hero_title_1 }}{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
+{% block messages %}{% endblock %}
+{% block content %}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="container hero-content">
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.hero_eyebrow }}</span>
+    <h1 id="hero-title">{{ T.hero_title_1 }}<br><span>{{ T.hero_title_2 }}</span></h1>
+    <p class="hero-copy">{{ T.hero_copy }}</p>
+
+    <div class="search-panel">
+      <form method="get" action="{% url 'search' %}#results" id="searchForm" class="search-form" role="search">
+        <label class="sr-only" for="medicine-query">{{ T.search_label }}</label>
+        <div class="search-field">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input type="text" name="q" id="medicine-query" value="{{ query }}" placeholder="{{ T.search_placeholder }}" autocomplete="off" maxlength="100" list="medicine-suggestions" required>
+          <datalist id="medicine-suggestions"></datalist>
+        </div>
+        <label class="sr-only" for="district">District</label>
+        <select name="district" id="district" class="district-select">
+          <option value="">{{ T.all_districts }}</option>
+          {% for value, label in districts %}<option value="{{ value }}"{% if value == district %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <input type="hidden" name="lat" id="lat">
+        <input type="hidden" name="lng" id="lng">
+        <button type="submit" class="btn search-button">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="2"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          {{ T.search_button }}
+        </button>
+      </form>
+      <div class="location-row">
+        <button type="button" class="location-button" id="useLocation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
+          {{ T.use_location }}
+        </button>
+        <p class="location-status" id="locationStatus" aria-live="polite">{% if has_coords %}{{ T.sorted_distance }}{% else %}{{ T.location_optional }}{% endif %}</p>
+      </div>
+    </div>
+
+    <div class="quick-searches" aria-label="Popular medicine searches">
+      <span class="quick-label">{{ T.try_search }}</span>
+      <a href="{% url 'search' %}?q=Paracetamol#results">Paracetamol</a>
+      <a href="{% url 'search' %}?q=Amoxicillin#results">Amoxicillin</a>
+      <a href="{% url 'search' %}?q=ORS#results">ORS</a>
+      <a href="{% url 'search' %}?q=Coartem#results">Coartem</a>
+      <a href="{% url 'search' %}?q=Cetirizine#results">Cetirizine</a>
+    </div>
+    <p class="hero-note">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 7 3v5c0 4.8-3 8-7 10-4-2-7-5.2-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      {{ T.hero_note }}
+    </p>
+    {% if not query %}{% include 'core/_quick_access.html' %}{% endif %}
+  </div>
+</section>
+
+{% if messages %}
+<div class="container message-list" aria-live="polite">
+  {% for m in messages %}<div class="message {{ m.tags }}" role="status">{{ m }}</div>{% endfor %}
+</div>
+{% endif %}
+
+{% if query %}
+<section class="results-section container" id="results" aria-labelledby="results-title">
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.listings }}</span>
+      <h2 id="results-title">{{ T.results_for }} “{{ query }}”{% if district %} · {{ district }}{% endif %}</h2>
+      <p>{{ T.results_copy }} {% if sort == 'distance' %}{{ T.sorted_distance }}.{% else %}{{ T.sorted_price }}.{% endif %}</p>
+      {% if price_summary %}
+      <p class="price-summary">
+        <span><strong>{{ price_summary.pharmacies }}</strong> {% if price_summary.pharmacies == 1 %}{{ T.at_1_pharmacy }}{% else %}{{ T.at_n_pharmacies }}{% endif %}</span>
+        <span>{{ T.price_from_to }}: <strong>{{ price_summary.low|floatformat:0 }}{% if price_summary.high != price_summary.low %} – {{ price_summary.high|floatformat:0 }}{% endif %} RWF</strong></span>
+      </p>
+      {% endif %}
+    </div>
+    {% if results %}
+    <div class="sort-tabs" role="group" aria-label="{{ T.sort_by }}">
+      <a href="?q={{ query|urlencode }}&district={{ district|urlencode }}&sort=price{% if request.GET.lat %}&lat={{ request.GET.lat|urlencode }}&lng={{ request.GET.lng|urlencode }}{% endif %}#results" class="{% if sort == 'price' %}active{% endif %}">{{ T.sort_price }}</a>
+      {% if has_coords %}
+      <a href="?q={{ query|urlencode }}&district={{ district|urlencode }}&sort=distance&lat={{ request.GET.lat|urlencode }}&lng={{ request.GET.lng|urlencode }}#results" class="{% if sort == 'distance' %}active{% endif %}">{{ T.sort_distance }}</a>
+      {% endif %}
+      <span class="badge badge-gray" style="align-self:center">{{ results|length }} {% if results|length == 1 %}{{ T.result }}{% else %}{{ T.results }}{% endif %}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <form method="get" action="{% url 'search' %}#results" class="filter-bar" aria-label="Filters">
+    <input type="hidden" name="q" value="{{ query }}">
+    <input type="hidden" name="district" value="{{ district }}">
+    {% if request.GET.lat %}<input type="hidden" name="lat" value="{{ request.GET.lat }}"><input type="hidden" name="lng" value="{{ request.GET.lng }}">{% endif %}
+    <label class="filter-item"><span>{{ T.filter_price }}</span>
+      <input type="number" name="max_price" min="0" step="10" inputmode="numeric" value="{% if max_price is not None %}{{ max_price|floatformat:0 }}{% endif %}" placeholder="—"></label>
+    <label class="filter-item"><span>{{ T.filter_insurance }}</span>
+      <select name="insurer"><option value="">{{ T.any_insurance }}</option>
+        {% for code, label in insurers %}<option value="{{ code }}"{% if code == insurer %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select></label>
+    <label class="filter-check"><input type="checkbox" name="open_now" value="1"{% if open_now %} checked{% endif %}> {{ T.filter_open }}</label>
+    <button class="btn btn-sm" type="submit">{{ T.apply_filters }}</button>
+    {% if filters_active %}<a class="btn btn-sm btn-ghost" href="?q={{ query|urlencode }}&district={{ district|urlencode }}#results">{{ T.clear_filters }}</a>{% endif %}
+  </form>
+
+  {% if corrected %}
+  <p class="alert alert-green" style="margin-bottom:16px">{{ T.corrected }} <strong>“{{ corrected }}”</strong> ({{ T.you_searched }} “{{ query }}”).</p>
+  {% endif %}
+  {% if filtered_out %}
+  <p class="small" style="margin:-6px 0 14px">{{ filtered_out }} {{ T.filtered_note }} <a class="link" href="?q={{ query|urlencode }}&district={{ district|urlencode }}#results">{{ T.clear_filters }}</a></p>
+  {% endif %}
+
+  {% if results %}
+  <div class="results-grid">
+    <div id="map" role="region" aria-label="Map of pharmacies with this medicine"></div>
+    <div class="result-list">
+      {% for item in results %}{% if forloop.first and forloop.last %}{% include 'core/_result_card.html' with open_reserve=True %}{% else %}{% include 'core/_result_card.html' %}{% endif %}{% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span class="empty-icon" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <h3>{{ T.no_results_title }}</h3>
+    <p>{{ T.no_results_copy }}</p>
+    <p class="empty-links"><a class="link" href="{% url 'help' %}">{{ T.how_to_search }}</a> · <a class="link" href="{% url 'medicine_list' %}">{{ T.view_all_medicines }}</a></p>
+  </div>
+  {% if alert_medicine %}{% include 'core/_stock_alert_form.html' with medicine=alert_medicine %}{% endif %}
+  {% if alternatives %}
+  <div class="alternatives">
+    <h3 style="margin:28px 0 4px;font-size:20px;letter-spacing:-.02em">{{ T.alt_title }}</h3>
+    <p class="small" style="margin:0 0 14px">{{ alt_for.name }} {{ T.alt_copy }}</p>
+    <div class="result-list alt-grid">
+      {% for item in alternatives %}{% include 'core/_result_card.html' %}{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+</section>
+{% endif %}
+
+{% if testimonials %}
+<section class="content-section" style="padding-bottom:20px" aria-labelledby="testimonials-title">
+  <div class="container">
+    <div class="content-intro"><h2 id="testimonials-title">{{ T.testimonials_title }}</h2></div>
+    <div class="steps-grid">
+      {% for t in testimonials %}
+      <figure class="step-card" style="margin:0">
+        <blockquote style="margin:0 0 14px;font-size:15px;color:var(--ink)">“{{ t.quote }}”</blockquote>
+        <figcaption class="small"><strong style="color:var(--ink)">{{ t.name }}</strong><br>{{ t.role }}</figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if stats %}
+<section class="stats-band" aria-label="MedFinder in numbers">
+  <div class="container stats-grid">
+    <a class="stat" href="{% url 'pharmacy_list' %}"><span class="stat-value"><span data-count="{{ stats.pharmacies }}">{{ stats.pharmacies }}</span></span><span class="stat-label">{{ T.stat_pharmacies }}</span></a>
+    <a class="stat" href="{% url 'medicine_list' %}?available=1"><span class="stat-value"><span data-count="{{ stats.medicines }}">{{ stats.medicines }}</span></span><span class="stat-label">{{ T.stat_medicines }}</span></a>
+    <a class="stat" href="{% url 'pharmacy_list' %}"><span class="stat-value"><span data-count="{{ stats.districts }}">{{ stats.districts }}</span><small>/30</small></span><span class="stat-label">{{ T.stat_districts }}</span></a>
+    <a class="stat" href="{% url 'pharmacy_list' %}?open_now=1"><span class="stat-value"><span class="live-dot" aria-hidden="true"></span><span data-count="{{ stats.open_now }}">{{ stats.open_now }}</span></span><span class="stat-label">{{ T.stat_open }}</span></a>
+  </div>
+</section>
+{% endif %}
+
+<section class="trust-strip" aria-label="Service highlights">
+  <div class="container trust-items">
+    <div class="trust-item"><span class="trust-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>{{ T.trust_1 }}</div>
+    <div class="trust-item"><span class="trust-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>{{ T.trust_2 }}</div>
+    <div class="trust-item"><span class="trust-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v14H4zM8 3v4m8-4v4M4 10h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>{{ T.trust_3 }}</div>
+  </div>
+</section>
+
+{% if categories %}
+<section class="content-section browse-section" aria-labelledby="browse-title">
+  <div class="container">
+    <div class="content-intro">
+      <span class="eyebrow">{{ T.browse_eyebrow }}</span>
+      <h2 id="browse-title">{{ T.browse_title }}</h2>
+      <p>{{ T.browse_copy }}</p>
+    </div>
+    <div class="category-grid">
+      {% for c in categories %}
+      <a class="category-card" href="{% url 'medicine_list' %}?category={{ c.category|urlencode }}">
+        <span class="category-initial" aria-hidden="true">{{ c.category|slice:":1" }}</span>
+        <span><strong>{{ c.category }}</strong><small>{{ c.n }} {% if c.n == 1 %}{{ T.medicine_word }}{% else %}{{ T.medicines_word }}{% endif %}</small></span>
+      </a>
+      {% endfor %}
+    </div>
+    <p class="center-link"><a class="btn btn-ghost" href="{% url 'medicine_list' %}">{{ T.view_all_medicines }} →</a> <a class="btn btn-ghost" href="{% url 'pharmacy_list' %}">{{ T.view_all_pharmacies }} →</a></p>
+  </div>
+</section>
+{% endif %}
+
+<section class="content-section" id="how-it-works" aria-labelledby="how-title">
+  <div class="container">
+    <div class="content-intro">
+      <span class="eyebrow">{{ T.how_eyebrow }}</span>
+      <h2 id="how-title">{{ T.how_title }}</h2>
+      <p>{{ T.how_copy }}</p>
+    </div>
+    <div class="steps-grid">
+      <article class="step-card"><span class="step-number">01</span><h3>{{ T.step1_title }}</h3><p>{{ T.step1_copy }}</p></article>
+      <article class="step-card"><span class="step-number">02</span><h3>{{ T.step2_title }}</h3><p>{{ T.step2_copy }}</p></article>
+      <article class="step-card"><span class="step-number">03</span><h3>{{ T.step3_title }}</h3><p>{{ T.step3_copy }}</p></article>
+    </div>
+    <p class="center-link"><a class="link" href="{% url 'help' %}">{{ T.how_to_search }} →</a></p>
+  </div>
+</section>
+
+<section class="content-section ussd-band" aria-labelledby="ussd-title">
+  <div class="container ussd-panel">
+    <div>
+      <span class="eyebrow">USSD · SMS</span>
+      <h2 id="ussd-title">{{ T.faq_q5 }}</h2>
+      <p>{{ T.faq_a5 }}</p>
+      <span class="ussd-code">{{ ussd_code }}</span>
+    </div>
+    <div class="phone-mock" aria-hidden="true">Welcome to MedFinder
+1. Search medicine
+2. Check my reservation
+3. Help
+4. Ikinyarwanda</div>
+  </div>
+</section>
+
+<section class="pharmacy-cta" aria-label="Pharmacy partner access">
+  <div class="container">
+    <div class="cta-panel">
+      <div>
+        <h2>{{ T.cta_title }}</h2>
+        <p>{{ T.cta_copy }}</p>
+      </div>
+      <div class="cta-actions">
+        <a class="cta-link" href="{% url 'register' %}">{{ T.cta_register }} <span aria-hidden="true">→</span></a>
+        <a class="cta-link outline" href="{% url 'for_pharmacies' %}">{{ T.cta_pricing }}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="faq-section" id="faq" aria-labelledby="faq-title">
+  <div class="container">
+    <div class="content-intro"><h2 id="faq-title">{{ T.faq_title }}</h2></div>
+    <div class="faq-list">
+      <details><summary>{{ T.faq_q1 }}</summary><p>{{ T.faq_a1 }}</p></details>
+      <details><summary>{{ T.faq_q2 }}</summary><p>{{ T.faq_a2 }}</p></details>
+      <details><summary>{{ T.faq_q3 }}</summary><p>{{ T.faq_a3 }}</p></details>
+      <details><summary>{{ T.faq_q4 }}</summary><p>{{ T.faq_a4 }}</p></details>
+      <details><summary>{{ T.faq_q5 }}</summary><p>{{ T.faq_a5 }} <strong>{{ ussd_code }}</strong></p></details>
+    </div>
+    <p class="center-link"><a class="link" href="{% url 'help' %}">{{ T.help_title }} →</a></p>
+  </div>
+</section>
+
+<div class="container"><p class="health-note">{{ T.health_note }}</p></div>
+{{ map_points|json_script:"map-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function () {
+  var T = {
+    requesting: "{{ T.location_requesting|escapejs }}",
+    sorting: "{{ T.location_sorting|escapejs }}",
+    added: "{{ T.location_added|escapejs }}",
+    denied: "{{ T.location_denied|escapejs }}",
+    unavailable: "{{ T.location_unavailable|escapejs }}"
+  };
+  var form = document.getElementById('searchForm');
+  var query = document.getElementById('medicine-query');
+  var lat = document.getElementById('lat');
+  var lng = document.getElementById('lng');
+  var btn = document.getElementById('useLocation');
+  var status = document.getElementById('locationStatus');
+  var params = new URLSearchParams(window.location.search);
+  lat.value = params.get('lat') || '';
+  lng.value = params.get('lng') || '';
+
+  btn.addEventListener('click', function () {
+    if (!navigator.geolocation) { status.textContent = T.unavailable; return; }
+    btn.disabled = true;
+    status.textContent = T.requesting;
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      lat.value = pos.coords.latitude.toFixed(6);
+      lng.value = pos.coords.longitude.toFixed(6);
+      btn.disabled = false;
+      if (query.value.trim()) { status.textContent = T.sorting; form.requestSubmit(); }
+      else { status.textContent = T.added; query.focus(); }
+    }, function () {
+      btn.disabled = false;
+      status.textContent = T.denied;
+    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+  });
+
+  // Medicine name suggestions while typing
+  var list = document.getElementById('medicine-suggestions');
+  var timer = null, lastQ = '';
+  query.addEventListener('input', function () {
+    clearTimeout(timer);
+    var q = query.value.trim();
+    if (q.length < 2 || q === lastQ) return;
+    timer = setTimeout(function () {
+      lastQ = q;
+      fetch('{% url "medicine_suggest" %}?q=' + encodeURIComponent(q))
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          list.innerHTML = '';
+          d.results.forEach(function (m) {
+            var o = document.createElement('option');
+            o.value = m.name;
+            if (m.generic) o.label = m.generic;
+            list.appendChild(o);
+          });
+        }).catch(function () {});
+    }, 200);
+  });
+
+  // "Reserve" on a card or a map popup: open that card's reservation form and focus the phone field.
+  function openReserve(card) {
+    var panel = card && card.querySelector('.reserve-panel');
+    if (!panel) return;
+    panel.open = true;
+    var phone = panel.querySelector('input[type="tel"]');
+    if (phone) setTimeout(function () { phone.focus({ preventScroll: true }); }, 50);
+  }
+  document.querySelectorAll('.reserve-panel').forEach(function (panel) {
+    panel.addEventListener('toggle', function () { if (panel.open) openReserve(panel.closest('.result-card')); });
+  });
+  function fromHash() {
+    if (/^#item-\d+$/.test(location.hash)) openReserve(document.querySelector(location.hash));
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+
+  var el = document.getElementById('map');
+  var data = JSON.parse(document.getElementById('map-data').textContent);
+  if (!el || !window.L || !data.length) return;
+
+  var map = L.map(el, { scrollWheelZoom: false });
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(map);
+
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  var bounds = [];
+  data.forEach(function (p) {
+    var point = [p.lat, p.lng];
+    bounds.push(point);
+    L.marker(point).addTo(map)
+      .bindPopup('<strong>' + esc(p.name) + '</strong><br>' + esc(p.medicine) + ': ' + esc(p.price) +
+                 ' RWF<br>' + esc(p.phone) + '<br><a href="#item-' + p.id + '">Reserve →</a> · <a href="' + p.url + '">Pharmacy</a>')
+      .on('click', function () {
+        document.querySelectorAll('.result-card.highlight').forEach(function (c) { c.classList.remove('highlight'); });
+        var card = document.getElementById('item-' + p.id);
+        if (card) card.classList.add('highlight');
+      });
+  });
+  if (lat.value && lng.value) {
+    var me = [parseFloat(lat.value), parseFloat(lng.value)];
+    L.circleMarker(me, { radius: 8, color: '#c0c0c0', weight: 2, fillColor: '#3a3a3a', fillOpacity: 1 })
+      .addTo(map).bindPopup('You are here');
+    bounds.push(me);
+  }
+  if (bounds.length === 1) map.setView(bounds[0], 15);
+  else map.fitBounds(bounds, { padding: [30, 30] });
+})();
+</script>
+{% endblock %}

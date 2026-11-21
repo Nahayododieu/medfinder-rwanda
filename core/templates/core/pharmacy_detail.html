@@ -1,0 +1,125 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ pharmacy.name }}, {{ pharmacy.district }} · {{ biz.name }}{% endblock %}
+{% block og_title %}{{ pharmacy.name }} ({{ pharmacy.district }}) · {{ biz.name }}{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><a href="{% url 'pharmacy_list' %}">{{ T.nav_find_pharmacy }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ pharmacy.name }}</span></nav>
+    <div class="profile-head">
+      <span class="profile-mark" aria-hidden="true">{{ pharmacy.name|slice:":1" }}</span>
+      <div>
+        <h1>{{ pharmacy.name }}</h1>
+        <p>{{ pharmacy.district }}{% if pharmacy.address %} · {{ pharmacy.address }}{% endif %}</p>
+        <div class="badge-row">
+          <span class="badge badge-green" title="{{ T.label_verified }}">{{ T.verified }}</span>
+          {% with open=pharmacy.is_open_now %}
+            {% if pharmacy.open_24h %}<span class="badge badge-blue">{{ T.filter_24h }}</span>
+            {% elif open is True %}<span class="badge badge-blue">{{ T.open_now }}</span>
+            {% elif open is False %}<span class="badge badge-gray">{{ T.closed_now }}</span>{% endif %}
+          {% endwith %}
+          {% if pharmacy.offers_delivery %}<span class="badge badge-blue">{{ T.delivers }}</span>{% endif %}
+          {% if rating %}<span class="rating" style="margin-left:2px"><span aria-hidden="true">★</span> {{ rating.0 }} <span class="muted">({{ rating.1 }} {{ T.reviews }})</span></span>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="action-row">
+      <a class="btn" href="tel:{{ pharmacy.phone }}">{{ T.call }} {{ pharmacy.phone }}</a>
+      <a class="btn btn-ghost" href="https://www.openstreetmap.org/directions?to={{ pharmacy.latitude|stringformat:'f' }}%2C{{ pharmacy.longitude|stringformat:'f' }}" target="_blank" rel="noopener">{{ T.directions }} ↗</a>
+    </div>
+    {% with share_text=T.share_pharmacy_text|add:" "|add:pharmacy.name %}{% include 'core/_share.html' %}{% endwith %}
+  </div>
+</section>
+
+<div class="container page" style="padding-top:24px">
+  <div class="grid-main">
+    <section class="card" aria-labelledby="stock-title">
+      <div class="card-head">
+        <h2 id="stock-title">{{ T.in_stock_here }}</h2>
+        <span class="badge badge-gray">{{ stock|length }}</span>
+      </div>
+      {% if stock %}
+      <label class="sr-only" for="stock-filter">{{ T.filter_list }}</label>
+      <input class="input" type="search" id="stock-filter" placeholder="{{ T.filter_list }}…" autocomplete="off" style="margin-bottom:12px">
+      <div class="table-wrap">
+        <table class="table stack-mobile" id="stock-table">
+          <thead><tr><th>{{ T.nav_medicines }}</th><th class="num">{{ T.price_from_to }}</th><th class="num">{{ T.in_stock }}</th><th></th></tr></thead>
+          <tbody>
+            {% for i in stock %}
+            <tr data-name="{{ i.medicine.name|lower }} {{ i.medicine.generic_name|lower }} {{ i.medicine.category|lower }}">
+              <td data-label="{{ T.nav_medicines }}"><a class="link" href="{% url 'medicine_detail' i.medicine_id %}">{{ i.medicine.name }}</a>{% if i.medicine.requires_prescription %}<span class="tag">Rx</span>{% endif %}{% if i.medicine.generic_name %}<br><span class="small">{{ i.medicine.generic_name }}</span>{% endif %}</td>
+              <td class="num" data-label="{{ T.price_from_to }}"><strong>{{ i.price|floatformat:0 }} RWF</strong></td>
+              <td class="num" data-label="{{ T.in_stock }}">{{ i.quantity }}</td>
+              <td data-label=""><span class="row-actions">
+                <form method="post" action="{% url 'basket_add' i.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}#stock-title"><input type="hidden" name="quantity" value="1"><button class="btn btn-sm btn-ghost" type="submit" title="{{ T.add_to_basket }}">+ {{ T.nav_basket }}</button></form>
+                <a class="btn btn-sm" href="{% url 'search' %}?q={{ i.medicine.name|urlencode }}&district={{ pharmacy.district|urlencode }}#item-{{ i.pk }}">{{ T.reserve }}</a>
+              </span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="small" id="stock-empty" hidden>{{ T.no_medicines }}</p>
+      {% else %}
+      <p class="small">{{ T.not_available }}</p>
+      {% endif %}
+    </section>
+
+    <aside class="stack">
+      <div class="card">
+        <div id="map" class="mini-map" role="region" aria-label="{{ pharmacy.name }}"></div>
+        <dl class="detail-list" style="margin-top:16px">
+          <dt>{{ T.address_label }}</dt><dd>{{ pharmacy.address|default:"—" }}, {{ pharmacy.district }}</dd>
+          <dt>{{ T.contact_label }}</dt><dd><a class="link" href="tel:{{ pharmacy.phone }}">{{ pharmacy.phone }}</a></dd>
+          <dt>{{ T.hours }}</dt><dd>{{ pharmacy.hours_display|default:"—" }}</dd>
+          <dt>{{ T.delivery_option }}</dt><dd>{% if pharmacy.offers_delivery %}{% if pharmacy.delivery_fee %}{{ pharmacy.delivery_fee|floatformat:0 }} RWF{% else %}{{ T.free }}{% endif %}{% if pharmacy.delivery_area %} · {{ pharmacy.delivery_area }}{% endif %}{% else %}—{% endif %}</dd>
+          <dt>{{ T.insurance_label }}</dt><dd>{% if pharmacy.insurer_labels %}{{ pharmacy.insurer_labels|join:", " }}{% else %}—{% endif %}</dd>
+          <dt>{{ T.license_label }}</dt><dd>{{ pharmacy.license_no }} <span class="small">· {{ T.verified_by }}</span></dd>
+        </dl>
+      </div>
+      <div class="card">
+        <h2>{{ T.reviews_title }}</h2>
+        {% for r in reviews %}
+        <figure class="review">
+          <div class="rating" style="margin:0" aria-label="{{ r.rating }} / 5">{% for _ in "12345" %}{% if forloop.counter <= r.rating %}★{% else %}<span class="star-off">★</span>{% endif %}{% endfor %}</div>
+          {% if r.comment %}<blockquote>{{ r.comment }}</blockquote>{% endif %}
+          <figcaption class="small">{{ r.created_at|date:"j M Y" }}</figcaption>
+        </figure>
+        {% empty %}
+        <p class="small" style="margin:6px 0 0">{{ T.no_reviews }}</p>
+        {% endfor %}
+      </div>
+    </aside>
+  </div>
+  <p class="health-note" style="margin-top:28px">{{ T.disclaimer }}</p>
+</div>
+{{ map_point|json_script:"map-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function () {
+  var input = document.getElementById('stock-filter');
+  if (input) {
+    var rows = document.querySelectorAll('#stock-table tbody tr');
+    var empty = document.getElementById('stock-empty');
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase(), shown = 0;
+      rows.forEach(function (r) { var ok = !q || r.dataset.name.indexOf(q) !== -1; r.hidden = !ok; if (ok) shown++; });
+      empty.hidden = shown > 0;
+    });
+  }
+  var el = document.getElementById('map');
+  var p = JSON.parse(document.getElementById('map-data').textContent);
+  if (!el || !window.L) return;
+  var map = L.map(el, { scrollWheelZoom: false }).setView([p.lat, p.lng], 15);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19
+  }).addTo(map);
+  L.marker([p.lat, p.lng]).addTo(map);
+})();
+</script>
+{% endblock %}

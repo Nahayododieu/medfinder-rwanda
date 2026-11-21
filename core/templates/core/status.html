@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% block title %}Service status · {{ biz.name }}{% endblock %}
+{% block content %}
+<div class="narrow page" style="max-width:640px">
+  <div class="page-head"><div><span class="eyebrow">{{ T.nav_status }}</span><h1>
+    {% if overall == 'ok' %}All systems working{% elif overall == 'warn' %}Some services have problems{% else %}Service disruption{% endif %}</h1>
+    <p>Checked {{ now|date:"d M Y, H:i" }} (Kigali time).</p></div></div>
+  <div class="card">
+    {% for name, state, note in checks %}
+      <div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;{% if not forloop.last %}border-bottom:1px solid #b4b4b4{% endif %}">
+        <strong>{{ name }}</strong>
+        <span>{% if state == 'ok' %}<span class="badge badge-green">{{ note }}</span>{% elif state == 'info' %}<span class="badge badge-gray">{{ note }}</span>{% elif state == 'warn' %}<span class="badge badge-amber">{{ note }}</span>{% else %}<span class="badge badge-red">{{ note }}</span>{% endif %}</span>
+      </div>
+    {% endfor %}
+  </div>
+  <p class="small" style="margin-top:14px">Monitoring services can check <code>/healthz/</code>, which returns <code>{"status": "ok"}</code>.</p>
+</div>
+{% endblock %}

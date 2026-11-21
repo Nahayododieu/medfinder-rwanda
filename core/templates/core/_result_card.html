@@ -1,0 +1,85 @@
+<article class="result-card" id="item-{{ item.pk }}">
+  <div class="result-topline">
+    <div>
+      <h3 class="pharmacy-name"><a href="{% url 'pharmacy_detail' item.pharmacy_id %}">{{ item.pharmacy.name }}</a></h3>
+      <span class="district">{{ item.pharmacy.district }}{% if item.pharmacy.address %} · {{ item.pharmacy.address }}{% endif %}</span>
+      {% if item.rating %}<span class="rating" title="{{ item.rating.0 }} out of 5 from {{ item.rating.1 }} {{ T.reviews }}"><span aria-hidden="true">★</span> {{ item.rating.0 }} <span class="muted">({{ item.rating.1 }})</span></span>{% endif %}
+    </div>
+    <span style="display:flex;gap:6px;flex-wrap:wrap">
+      {% with open=item.pharmacy.is_open_now %}
+        {% if open is True %}<span class="badge badge-blue" title="{{ item.pharmacy.hours_display }}">{{ T.open_now }}</span>
+        {% elif open is False %}<span class="badge badge-gray" title="{{ item.pharmacy.hours_display }}">{{ T.closed_now }}</span>{% endif %}
+      {% endwith %}
+      {% if item.pharmacy.offers_delivery %}<span class="badge badge-blue" title="{{ item.pharmacy.delivery_area }}">{{ T.delivers }}</span>{% endif %}
+      <span class="badge badge-green">{{ T.verified }}</span>
+    </span>
+  </div>
+  <p class="medicine-name">
+    <a href="{% url 'medicine_detail' item.medicine_id %}" title="{{ T.about_medicine }}">{{ item.medicine.name }}</a>
+    {% if item.medicine.requires_prescription %}<span class="tag">{{ T.rx_needed }}</span>{% endif %}
+  </p>
+  <div class="price-line">
+    <span class="price">{{ item.price|floatformat:0 }} RWF</span>
+    <span class="stock">{{ item.quantity }} {{ T.in_stock }}</span>
+    {% if item.distance is not None %}<span class="distance">{{ item.distance }} {{ T.km_away }}</span>{% endif %}
+  </div>
+  <p class="result-meta">
+    {% if item.pharmacy.hours_display %}<span>{{ T.hours }}: {{ item.pharmacy.hours_display }}</span>{% endif %}
+    {% if item.pharmacy.insurer_labels %}<span>{{ T.insurance_label }}: {{ item.pharmacy.insurer_labels|join:", " }}</span>{% endif %}
+    <span>{{ T.updated }} {{ item.updated_at|timesince }} {{ T.ago }}</span>
+  </p>
+  <div class="action-row">
+    <a class="btn btn-ghost btn-sm" href="tel:{{ item.pharmacy.phone }}" aria-label="{{ T.call }} {{ item.pharmacy.name }}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      {{ T.call }} {{ item.pharmacy.phone }}
+    </a>
+    <a class="btn btn-ghost btn-sm" href="https://www.openstreetmap.org/directions?to={{ item.pharmacy.latitude|stringformat:'f' }}%2C{{ item.pharmacy.longitude|stringformat:'f' }}" target="_blank" rel="noopener">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m3 11 18-8-8 18-2-8-8-2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      {{ T.directions }}
+    </a>
+    <form method="post" action="{% url 'basket_add' item.pk %}" class="basket-add-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}#item-{{ item.pk }}">
+      <input type="hidden" name="quantity" value="1">
+      <button type="submit" class="btn btn-ghost btn-sm">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L20.5 8H6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.3" fill="currentColor"/><circle cx="17" cy="20" r="1.3" fill="currentColor"/></svg>
+        {{ T.add_to_basket }}
+      </button>
+    </form>
+  </div>
+  <p class="disclaimer">{{ T.disclaimer }}</p>
+  <details class="reserve-panel"{% if open_reserve %} open{% endif %}>
+  <summary class="btn reserve-toggle">{{ T.reserve_open }}</summary>
+  <form method="post" action="{% url 'reserve' item.pk %}" class="reserve-form" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <div class="reserve-row">
+      <label class="sr-only" for="phone-{{ item.pk }}">{{ T.your_phone }}</label>
+      <input type="tel" id="phone-{{ item.pk }}" name="phone" placeholder="{{ T.your_phone }} (07…)" autocomplete="tel" inputmode="tel" maxlength="20" pattern="[0-9+ ]{9,16}" required>
+      <label class="sr-only" for="quantity-{{ item.pk }}">{{ T.quantity }}</label>
+      <input type="number" id="quantity-{{ item.pk }}" name="quantity" value="1" min="1" max="{{ item.quantity }}" required>
+      <button type="submit" class="btn">{{ T.reserve }}</button>
+    </div>
+    {% if item.pharmacy.offers_delivery %}
+    <fieldset class="delivery-choice">
+      <legend class="sr-only">{{ T.delivery_option }}</legend>
+      <label class="choice"><input type="radio" name="delivery" value="" checked> <span>{{ T.pickup_option }}</span></label>
+      <label class="choice"><input type="radio" name="delivery" value="1"> <span>{{ T.delivery_option }} · {% if item.pharmacy.delivery_fee %}+{{ item.pharmacy.delivery_fee|floatformat:0 }} RWF{% else %}{{ T.free }}{% endif %}</span></label>
+      <div class="delivery-address" hidden>
+        <label class="sr-only" for="address-{{ item.pk }}">{{ T.delivery_address }}</label>
+        <input type="text" id="address-{{ item.pk }}" name="address" maxlength="255" placeholder="{{ T.delivery_address_ph }}" autocomplete="street-address">
+        {% if item.pharmacy.delivery_area %}<small class="muted">{{ T.delivery_area_label }}: {{ item.pharmacy.delivery_area }}</small>{% endif %}
+      </div>
+    </fieldset>
+    {% endif %}
+    {% if item.medicine.requires_prescription %}
+    <div class="rx-field">
+      <label for="rx-{{ item.pk }}">{{ T.rx_upload_label }}</label>
+      <input type="file" id="rx-{{ item.pk }}" name="prescription" accept="image/jpeg,image/png,application/pdf">
+      <small class="muted">{{ T.rx_upload_help }}</small>
+    </div>
+    {% endif %}
+    <label class="consent"><input type="checkbox" name="consent" value="1" required> <span>{{ T.consent }} <a class="link" href="{% url 'privacy' %}">{{ T.privacy_link }}</a></span></label>
+  </form>
+  </details>
+</article>

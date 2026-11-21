@@ -1,0 +1,59 @@
+{% extends 'core/base.html' %}
+{% block title %}USSD simulator · MedFinder Rwanda{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div><span class="eyebrow">Staff tool</span><h1>USSD simulator</h1>
+      <p>Runs the same menu Africa's Talking calls at <code>/ussd/</code>. Reservations made here are real.</p></div>
+    <a class="btn btn-ghost btn-sm" href="{% url 'analytics' %}">← Analytics</a>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="field"><label for="sim-phone">Caller phone number</label><input id="sim-phone" value="+250788123456"></div>
+      <p class="small">Start a session, then type each answer and press Send, as on a real phone. The SMS with the pickup code appears in the <a class="link" href="{% url 'tool_sms' %}">SMS outbox</a>.</p>
+      <p class="small">Path sent so far: <code id="sim-path">(empty)</code></p>
+    </div>
+    <div>
+      <div class="sim-phone">
+        <div class="sim-screen" id="sim-screen" aria-live="polite">Dial {{ ussd_code }} to start.</div>
+        <form id="sim-form" class="inline-form" style="margin-top:12px">
+          <input id="sim-input" class="input" placeholder="Reply" autocomplete="off" style="flex:1 1 120px">
+          <button class="btn" type="submit">Send</button>
+        </form>
+        <button class="btn btn-ghost btn-block" id="sim-dial" style="margin-top:8px">Dial {{ ussd_code }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var parts = [], active = false;
+  var screen = document.getElementById('sim-screen');
+  var input = document.getElementById('sim-input');
+  var pathEl = document.getElementById('sim-path');
+  var csrf = '{{ csrf_token }}';
+  function send() {
+    var body = new URLSearchParams({ sessionId: 'sim', serviceCode: '{{ ussd_code|escapejs }}',
+      phoneNumber: document.getElementById('sim-phone').value, text: parts.join('*') });
+    pathEl.textContent = parts.join('*') || '(empty)';
+    fetch('{% url "tool_ussd_step" %}', { method: 'POST', body: body,
+      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' } })
+      .then(function (r) { return r.text(); })
+      .then(function (t) {
+        active = t.indexOf('CON ') === 0;
+        screen.textContent = t.replace(/^(CON|END) /, '');
+        if (!active) { var s = document.createElement('span'); s.className = 'ended'; s.textContent = 'Session ended'; screen.appendChild(s); }
+        input.value = ''; input.focus();
+      });
+  }
+  document.getElementById('sim-dial').onclick = function () { parts = []; send(); };
+  document.getElementById('sim-form').onsubmit = function (e) {
+    e.preventDefault();
+    if (!active) return;
+    parts.push(input.value.trim()); send();
+  };
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+<nav class="quick-access" aria-label="{{ T.quick_title }}">
+  <a class="quick-tile" href="{% url 'medicine_list' %}">
+    <span class="qt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-45 12 12)" stroke="currentColor" stroke-width="1.9"/><path d="m9.5 9.5 5 5" stroke="currentColor" stroke-width="1.9"/></svg></span>
+    <span class="qt-text"><strong>{{ T.qa_medicines }}</strong><small>{{ T.qa_medicines_sub }}</small></span>
+  </a>
+  <a class="quick-tile" href="{% url 'pharmacy_list' %}">
+    <span class="qt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.9"/><path d="M12 7v6M9 10h6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+    <span class="qt-text"><strong>{{ T.qa_pharmacies }}</strong><small>{{ T.qa_pharmacies_sub }}</small></span>
+  </a>
+  <a class="quick-tile" href="{% url 'pharmacy_list' %}?open_now=1">
+    <span class="qt-icon qt-live"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.9"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+    <span class="qt-text"><strong>{{ T.qa_open_now }}</strong><small>{{ T.qa_open_now_sub }}</small></span>
+  </a>
+  <a class="quick-tile" href="{% url 'pharmacy_list' %}?h24=1">
+    <span class="qt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg></span>
+    <span class="qt-text"><strong>{{ T.qa_24h }}</strong><small>{{ T.qa_24h_sub }}</small></span>
+  </a>
+  <a class="quick-tile" href="{% url 'track' %}">
+    <span class="qt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.9"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+    <span class="qt-text"><strong>{{ T.qa_track }}</strong><small>{{ T.qa_track_sub }}</small></span>
+  </a>
+  <a class="quick-tile" href="{% url 'help' %}">
+    <span class="qt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="17" r="1.1" fill="currentColor"/></svg></span>
+    <span class="qt-text"><strong>{{ T.qa_help }}</strong><small>{{ T.qa_help_sub }}</small></span>
+  </a>
+  <a class="quick-tile qt-danger" href="tel:912">
+    <span class="qt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg></span>
+    <span class="qt-text"><strong>{{ T.qa_emergency }}</strong><small>{{ T.qa_emergency_sub }}</small></span>
+  </a>
+  <a class="quick-tile" href="{% url 'for_pharmacies' %}">
+    <span class="qt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10 12 4l8 6v10H4V10Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M12 11v6M9 14h6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+    <span class="qt-text"><strong>{{ T.qa_register }}</strong><small>{{ T.qa_register_sub }}</small></span>
+  </a>
+</nav>

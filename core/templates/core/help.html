@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ T.help_title }} · {{ biz.name }}{% endblock %}
+{% block og_title %}{{ T.help_title }}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ T.nav_help }}</span></nav>
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.help_eyebrow }}</span>
+    <h1>{{ T.help_title }}</h1>
+    <p>{{ T.help_copy }}</p>
+    <form method="get" action="{% url 'search' %}#results" class="help-search" role="search">
+      <label class="sr-only" for="help-q">{{ T.search_label }}</label>
+      <input class="input" type="text" id="help-q" name="q" placeholder="{{ T.search_placeholder }}" maxlength="100" required>
+      <button class="btn" type="submit">{{ T.search_button }}</button>
+    </form>
+  </div>
+</section>
+
+<div class="container page" style="padding-top:28px">
+  <h2 class="section-title">{{ T.quick_title }}</h2>
+  {% include 'core/_quick_access.html' %}
+  <ol class="help-steps" style="margin-top:28px">
+    <li class="step-card"><span class="step-number">1</span><h2>{{ T.help_s1_title }}</h2><p>{{ T.help_s1_copy }}</p></li>
+    <li class="step-card"><span class="step-number">2</span><h2>{{ T.help_s2_title }}</h2><p>{{ T.help_s2_copy }}</p></li>
+    <li class="step-card"><span class="step-number">3</span><h2>{{ T.help_s3_title }}</h2><p>{{ T.help_s3_copy }}</p></li>
+    <li class="step-card"><span class="step-number">4</span><h2>{{ T.help_s4_title }}</h2><p>{{ T.help_s4_copy }}</p></li>
+  </ol>
+
+  <div class="grid-2" style="margin-top:20px">
+    <section class="card" aria-labelledby="tips-title">
+      <h2 id="tips-title">{{ T.tips_title }}</h2>
+      <ul class="tick-list">
+        <li>{{ T.tip_1 }}</li><li>{{ T.tip_2 }}</li><li>{{ T.tip_3 }}</li>
+        <li>{{ T.tip_4 }} <a class="link" href="{% url 'medicine_list' %}">{{ T.view_all_medicines }} →</a></li>
+        <li>{{ T.tip_5 }}</li>
+      </ul>
+    </section>
+    <section class="card" aria-labelledby="labels-title">
+      <h2 id="labels-title">{{ T.labels_title }}</h2>
+      <dl class="label-list">
+        <dt><span class="badge badge-green">{{ T.verified }}</span></dt><dd>{{ T.label_verified }}</dd>
+        <dt><span class="badge badge-blue">{{ T.open_now }}</span></dt><dd>{{ T.label_open }}</dd>
+        <dt><span class="tag" style="margin:0">{{ T.rx_needed }}</span></dt><dd>{{ T.label_rx }}</dd>
+        <dt><span class="small"><strong>{{ T.updated }}…</strong></span></dt><dd>{{ T.label_updated }}</dd>
+      </dl>
+    </section>
+  </div>
+
+  <section class="ussd-panel card" style="margin-top:20px" aria-labelledby="ussd-help-title">
+    <div>
+      <span class="eyebrow">USSD · SMS</span>
+      <h2 id="ussd-help-title" style="margin-top:10px">{{ T.faq_q5 }}</h2>
+      <p class="muted">{{ T.faq_a5 }}</p>
+      <span class="ussd-code">{{ ussd_code }}</span>
+    </div>
+    <div class="phone-mock" aria-hidden="true">Welcome to MedFinder
+1. Search medicine
+2. Check my reservation
+3. Help
+4. Ikinyarwanda</div>
+  </section>
+
+  <section style="margin-top:36px" aria-labelledby="faq-title">
+    <h2 id="faq-title" class="section-title" style="text-align:center">{{ T.faq_title }}</h2>
+    <div class="faq-list">
+      <details><summary>{{ T.faq_q1 }}</summary><p>{{ T.faq_a1 }}</p></details>
+      <details><summary>{{ T.faq_q2 }}</summary><p>{{ T.faq_a2 }}</p></details>
+      <details><summary>{{ T.faq_q3 }}</summary><p>{{ T.faq_a3 }}</p></details>
+      <details><summary>{{ T.faq_q4 }}</summary><p>{{ T.faq_a4 }}</p></details>
+      <details><summary>{{ T.refund_title }}</summary><p>{{ T.refund_copy }}</p></details>
+    </div>
+  </section>
+
+  <div class="cta-panel" style="margin-top:36px">
+    <div><h2>{{ T.help_more }}</h2><p>{{ T.help_more_copy }}</p></div>
+    <div class="cta-actions">
+      <a class="cta-link" href="{% url 'contact' %}">{{ T.nav_contact }} →</a>
+      {% if biz.whatsapp %}<a class="cta-link outline" href="https://wa.me/{{ biz.whatsapp }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+      <a class="cta-link outline" href="{% url 'track' %}">{{ T.nav_track }}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

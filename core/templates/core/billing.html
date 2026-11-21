@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+{% block title %}Billing · {{ pharmacy.name }}{% endblock %}
+{% block content %}
+<div class="container page" style="max-width:960px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Billing</span>
+      <h1>Your subscription</h1>
+      <p>{{ pharmacy.name }} · {{ biz.price|intcomma }} RWF per month after the free trial.</p>
+    </div>
+    <a class="btn btn-ghost btn-sm" href="{% url 'dashboard' %}">← Dashboard</a>
+  </div>
+
+  {% include 'core/_subscription_banner.html' %}
+
+  <div class="grid-main">
+    <div class="card">
+      <h2>Pay with mobile money</h2>
+      <p class="small">Paying early adds the months after your current end date, so you never lose days.{% if momo_simulated %} <span class="badge badge-gray">Sandbox simulation</span>{% endif %}</p>
+      {% if not pharmacy.verified %}
+        <p class="alert alert-amber" style="margin:0">You can pay once an administrator has verified your pharmacy. Your free trial starts on that day.</p>
+      {% elif pending %}
+        <p class="alert alert-amber">Waiting for you to approve {{ pending.amount|floatformat:0|intcomma }} RWF on your phone.</p>
+        <form method="post" action="{% url 'billing_check' %}">{% csrf_token %}<button class="btn btn-momo">I have approved, check payment</button></form>
+      {% else %}
+        <form method="post" class="stack">
+          {% csrf_token %}
+          <fieldset style="border:0;padding:0;margin:0">
+            <legend class="small" style="font-weight:700;color:var(--ink-2);margin-bottom:8px">Choose a period</legend>
+            <div class="plan-grid">
+              {% for p in plans %}
+                <label class="plan-option">
+                  <input type="radio" name="months" value="{{ p.months }}" {% if forloop.first %}checked{% endif %}>
+                  <span><strong>{{ p.months }} month{{ p.months|pluralize }}</strong><br><span class="small">{{ p.amount|floatformat:0|intcomma }} RWF</span></span>
+                </label>
+              {% endfor %}
+            </div>
+          </fieldset>
+          <div class="field"><label for="pay-phone">MTN MoMo (078/079) or Airtel Money (072/073) number</label><input id="pay-phone" type="tel" name="phone" value="{{ form.phone.value|default:'' }}" required></div>
+          <button class="btn btn-momo" type="submit">Pay now</button>
+        </form>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>How billing works</h2>
+      <ul class="prose" style="padding-left:18px;margin:0;font-size:14px">
+        <li>Free for {{ biz.trial_days }} days from the day your pharmacy is verified.</li>
+        <li>Then {{ biz.price|intcomma }} RWF for each 30 days. Nothing is charged automatically.</li>
+        <li>You get SMS reminders 7, 3 and 1 day before your period ends.</li>
+        <li>After the end date you stay visible for {{ grace_days }} more days.{% if hide_unpaid %} After that your pharmacy is hidden from patient search until you pay.{% endif %}</li>
+        <li>Prefer cash or bank transfer? Call {{ biz.phone }}.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h2>Payment history</h2>
+    <div class="table-wrap">
+      <table class="table stack-mobile">
+        <thead><tr><th>Date</th><th>Period</th><th class="num">Amount (RWF)</th><th>Method</th><th>Status</th><th>Invoice</th></tr></thead>
+        <tbody>
+        {% for p in payments %}
+          <tr>
+            <td data-label="Date">{{ p.created_at|date:"d M Y" }}</td>
+            <td data-label="Period">{% if p.period_start %}{{ p.period_start|date:"d M Y" }} – {{ p.period_end|date:"d M Y" }}{% else %}{{ p.months }} month{{ p.months|pluralize }}{% endif %}</td>
+            <td data-label="Amount (RWF)" class="num">{{ p.amount|floatformat:0|intcomma }}</td>
+            <td data-label="Method">{{ p.get_method_display }}</td>
+            <td data-label="Status">{% if p.status == 'successful' %}<span class="badge badge-green">Paid</span>{% elif p.status == 'pending' %}<span class="badge badge-amber">Pending</span>{% else %}<span class="badge badge-red">Failed</span>{% endif %}</td>
+            <td data-label="Invoice">{% if p.status == 'successful' %}<a class="link" href="{% url 'invoice' p.pk %}">{{ p.invoice_number }}</a>{% else %}–{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="empty-row">No payments yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

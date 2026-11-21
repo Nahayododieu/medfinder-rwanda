@@ -1,0 +1,244 @@
+{% extends 'core/base.html' %}
+{% load humanize %}
+{% block title %}Dashboard · {{ pharmacy.name }}{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div>
+      {% if pharmacy.verified %}<span class="badge badge-green">Verified · visible to patients</span>
+      {% else %}<span class="badge badge-amber">Waiting for verification · hidden from search</span>{% endif %}
+      <h1>{{ pharmacy.name }}</h1>
+      <p>{{ pharmacy.district }}{% if pharmacy.address %} · {{ pharmacy.address }}{% endif %} · License {{ pharmacy.license_no }}</p>
+    </div>
+    <div class="inline-form">
+      <a class="btn btn-ghost btn-sm" href="{% url 'reports' %}">Reports</a>
+      {% if is_owner %}
+      <a class="btn btn-ghost btn-sm" href="{% url 'billing' %}">Billing</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'staff' %}">Staff</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'pharmacy_profile' %}">Details, hours &amp; insurance</a>
+      {% endif %}
+      <a class="btn btn-ghost btn-sm" href="{% url 'password_change' %}">Change password</a>
+    </div>
+  </div>
+
+  {% if is_owner %}{% include 'core/_subscription_banner.html' with show_billing_link=True %}{% endif %}
+
+  {% if expiring %}
+  <div class="alert alert-amber" style="margin-bottom:16px">
+    <strong>Expiry check:</strong>
+    {% for i in expiring|slice:":6" %}{{ i.medicine.name }} ({% if i.expiry_state == 'expired' %}expired{% else %}expires{% endif %} {{ i.expiry_date|date:"d M Y" }}){% if not forloop.last %}, {% endif %}{% endfor %}{% if expiring|length > 6 %} and {{ expiring|length|add:"-6" }} more{% endif %}.
+    Remove expired stock from sale and update the quantity.
+  </div>
+  {% endif %}
+
+  <div class="alert alert-green" id="newResAlert" role="status" hidden style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <strong>New reservation received.</strong>
+    <a class="btn btn-sm" href="{% url 'dashboard' %}">Refresh</a>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><span class="label">Open reservations</span><span class="value">{{ reservations|length }}</span><span class="sub">Held for {{ hold_hours }} h</span></div>
+    <div class="kpi"><span class="label">Medicines listed</span><span class="value">{{ items|length }}</span><span class="sub">{{ low_stock|length }} low on stock</span></div>
+    <div class="kpi"><span class="label">Pickups this month</span><span class="value">{{ insights.pickups_month }}</span><span class="sub">Completed reservations</span></div>
+    <div class="kpi"><span class="label">Sales via MedFinder</span><span class="value">{{ insights.revenue_month|floatformat:0|intcomma }}</span><span class="sub">RWF this month</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div><h2>Open reservations</h2><p class="small">Mark ready when prepared. Ask the patient for the 6-digit code to confirm pickup.</p></div>
+    </div>
+    <div class="table-wrap">
+      <table class="table stack-mobile">
+        <thead><tr><th>#</th><th>Patient</th><th>Medicine</th><th class="num">Qty</th><th class="num">Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for r in reservations %}
+        <tr>
+          <td data-label="Reservation"><span>#{{ r.pk }}{% if r.order_id %}<br><span class="badge badge-blue" title="Several medicines reserved together, same pickup code">Order #{{ r.order_id }}</span>{% endif %}</span></td>
+          <td data-label="Patient"><span><span class="nowrap">{{ r.patient_phone }}</span><br><span class="small">{{ r.created_at|timesince }} ago · {{ r.get_source_display }}</span>
+            {% if r.delivery %}<br><span class="delivery-pill" title="Deliver to this address">🛵 Deliver: {{ r.delivery_address }}</span>{% endif %}</span></td>
+          <td data-label="Medicine"><span>{{ r.inventory.medicine.name }}{% if r.inventory.medicine.requires_prescription %}<span class="tag">Rx</span>{% endif %}
+            {% if r.prescription_status %}<span class="rx-line">
+              {% if r.prescription_status == 'uploaded' %}<span class="badge badge-amber">Prescription to check</span>
+              {% elif r.prescription_status == 'approved' %}<span class="badge badge-green">Prescription OK</span>
+              {% elif r.prescription_status == 'rejected' %}<span class="badge badge-red">Prescription rejected</span>
+              {% else %}<span class="badge badge-gray">Patient brings prescription</span>{% endif %}
+              {% if r.prescription %}<a class="link small" href="{% url 'prescription_file' r.pk %}" target="_blank" rel="noopener">View ↗</a>{% endif %}
+              {% if r.prescription_status == 'uploaded' %}
+              <span class="rx-actions">
+                <form method="post" action="{% url 'reservation_action' r.pk 'rx_ok' %}">{% csrf_token %}<button class="btn btn-sm btn-ghost">Approve</button></form>
+                <form method="post" action="{% url 'reservation_action' r.pk 'rx_reject' %}" class="confirm-form" data-confirm="Reject this prescription? The patient will be asked by SMS for a valid one.">{% csrf_token %}<button class="btn btn-sm btn-danger">Reject</button></form>
+              </span>
+              {% endif %}
+            </span>{% endif %}</span></td>
+          <td data-label="Qty" class="num">{{ r.quantity }}</td>
+          <td data-label="Total (RWF)" class="num"><span>{{ r.total|floatformat:0|intcomma }}{% if r.is_paid %}<br><span class="badge badge-green">Paid online</span>{% endif %}</span></td>
+          <td data-label="Status"><span>{% if r.status == 'ready' %}<span class="badge badge-green">Ready</span>{% else %}<span class="badge badge-amber">Pending</span>{% endif %}
+              {% if not r.is_paid %}<br><span class="small">expires {{ r.expires_at|date:"H:i" }}</span>{% endif %}</span></td>
+          <td data-label="Actions">
+            <div class="actions">
+              {% if r.status == 'pending' %}
+              <form method="post" action="{% url 'reservation_action' r.pk 'ready' %}">{% csrf_token %}<button class="btn btn-sm btn-ghost">Mark ready</button></form>
+              {% endif %}
+              <form method="post" action="{% url 'reservation_action' r.pk 'done' %}">
+                {% csrf_token %}
+                <label class="sr-only" for="code-{{ r.pk }}">Pickup code</label>
+                <input class="code-input" id="code-{{ r.pk }}" type="text" name="code" inputmode="numeric" placeholder="Code" maxlength="6" required>
+                <button class="btn btn-sm">Picked up</button>
+              </form>
+              <form method="post" action="{% url 'reservation_action' r.pk 'cancel' %}" class="confirm-form" data-confirm="Cancel reservation #{{ r.pk }} and restore stock?">
+                {% csrf_token %}<button class="btn btn-sm btn-danger">Cancel</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty-row">No open reservations right now.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-main" style="margin-top:16px">
+    <div class="stack">
+      <div class="card">
+        <h2>Add or update a medicine</h2>
+        <p class="small">Saving a medicine you already list updates its quantity and price. The expiry date is optional; you get an alert {{ expiry_days }} days before.</p>
+        <form method="post" class="inline-form">
+          {% csrf_token %}
+          <label class="sr-only" for="id_medicine">Medicine</label>{{ form.medicine }}
+          <label class="sr-only" for="id_quantity">Quantity</label>{{ form.quantity }}
+          <label class="sr-only" for="id_price">Price</label>{{ form.price }}
+          <label class="sr-only" for="id_expiry_date">Expiry date</label>{{ form.expiry_date }}
+          <button type="submit" class="btn">Save</button>
+        </form>
+        {% if form.errors %}<div class="errorlist" style="margin-top:8px">{% for field in form %}{% for e in field.errors %}<div>{{ field.label }}: {{ e }}</div>{% endfor %}{% endfor %}</div>{% endif %}
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Your stock ({{ all_count }})</h2><span class="small">Quantity 0 hides the item from search.</span></div>
+          <form method="get" class="inline-form" role="search">
+            <label class="sr-only" for="stock-search">Find in your stock</label>
+            <input id="stock-search" name="stock" value="{{ stock_q }}" placeholder="Find in your stock">
+            <button class="btn btn-sm btn-ghost">Find</button>
+            {% if stock_q %}<a class="btn btn-sm btn-ghost" href="{% url 'dashboard' %}">Clear</a>{% endif %}
+          </form>
+        </div>
+        <div class="table-wrap">
+          <table class="table stack-mobile">
+            <thead><tr><th>Medicine</th><th>Quantity</th><th>Price (RWF)</th><th>Expiry</th><th>Updated</th><th></th></tr></thead>
+            <tbody>
+            {% for item in items %}
+            <tr>
+              <td data-label="Medicine"><span>{{ item.medicine.name }}{% if item.quantity == 0 %} <span class="badge badge-red">Out</span>{% elif item.is_low %} <span class="badge badge-amber">Low</span>{% endif %}{% if item.expiry_state == 'expired' %} <span class="badge badge-red">Expired</span>{% elif item.expiry_state == 'soon' %} <span class="badge badge-amber">Expires soon</span>{% endif %}</span></td>
+              <td data-label="Quantity"><input form="upd-{{ item.pk }}" type="number" name="quantity" min="0" value="{{ item.quantity }}" aria-label="Quantity for {{ item.medicine.name }}"></td>
+              <td data-label="Price (RWF)"><input form="upd-{{ item.pk }}" type="number" name="price" min="0" step="any" value="{{ item.price|floatformat:0 }}" aria-label="Price for {{ item.medicine.name }}"></td>
+              <td data-label="Expiry"><input form="upd-{{ item.pk }}" type="date" name="expiry_date" value="{{ item.expiry_date|date:'Y-m-d' }}" aria-label="Expiry date for {{ item.medicine.name }}" style="width:150px;min-height:36px;padding:5px 8px;border:1px solid #c0c0c0;border-radius:8px"></td>
+              <td data-label="Updated" class="small nowrap">{{ item.updated_at|timesince }} ago</td>
+              <td data-label="">
+                <div class="actions">
+                  <form id="upd-{{ item.pk }}" method="post" action="{% url 'update_stock' item.pk %}">{% csrf_token %}<button class="btn btn-sm btn-ghost">Update</button></form>
+                  <form method="post" action="{% url 'delete_stock' item.pk %}" class="confirm-form" data-confirm="Remove {{ item.medicine.name }} from your stock?">{% csrf_token %}<button class="btn btn-sm btn-danger" aria-label="Remove {{ item.medicine.name }}">Remove</button></form>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-row">{% if stock_q %}No medicine in your stock matches “{{ stock_q }}”.{% else %}No stock yet. Add your first medicine above, or import a CSV file.{% endif %}</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="card">
+        <h2>Import or export stock</h2>
+        <p class="small">Update many medicines at once from Excel. Save the sheet as CSV with the columns <strong>medicine, quantity, price</strong> and optionally <strong>expiry</strong> (e.g. 2027-06-30). Start from your current stock by exporting it.</p>
+        <form method="post" action="{% url 'stock_import' %}" enctype="multipart/form-data" class="inline-form">
+          {% csrf_token %}
+          <label class="sr-only" for="id_file">CSV file</label>
+          <input type="file" name="file" id="id_file" accept=".csv,text/csv" required style="flex:1 1 200px">
+          <button class="btn btn-sm" type="submit">Import</button>
+        </form>
+        <p style="margin:10px 0 0"><a class="link" href="{% url 'stock_export' %}">Download current stock (CSV)</a></p>
+      </div>
+
+      <div class="card">
+        <h2>Medicine not in the list?</h2>
+        <p class="small">Ask the administrator to add it to the MedFinder catalogue.</p>
+        <form method="post" action="{% url 'medicine_request' %}" class="stack">
+          {% csrf_token %}
+          {% include 'core/_field.html' with f=request_form.name %}
+          {% include 'core/_field.html' with f=request_form.generic_name %}
+          <button class="btn btn-sm" type="submit">Send request</button>
+        </form>
+        {% for r in my_requests %}
+          <div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #b4b4b4;font-size:14px">
+            <span>{{ r.name }}</span>
+            {% if r.status == 'added' %}<span class="badge badge-green">Added</span>{% elif r.status == 'rejected' %}<span class="badge badge-gray">Not added</span>{% else %}<span class="badge badge-amber">Waiting</span>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="card">
+        <h2>Unmet demand in {{ pharmacy.district }}</h2>
+        <p class="small">Medicines patients searched for in your district in the last 30 days but could not find. Consider stocking them.</p>
+        {% for m in insights.missed %}
+          <div class="hbar" style="margin-top:10px">
+            <span style="min-width:110px;font-size:14px">{{ m.query }}</span>
+            <span class="hbar-track"><span class="hbar-fill" style="width:{% widthratio m.total insights.missed.0.total 100 %}%"></span></span>
+            <span class="small nowrap">{{ m.total }} search{{ m.total|pluralize:"es" }}</span>
+          </div>
+        {% empty %}
+          <p class="small" style="margin:0">No unmet searches recorded yet.</p>
+        {% endfor %}
+      </div>
+
+      <div class="card">
+        <h2>Update stock by SMS</h2>
+        <p class="small">From your registered phone ({{ pharmacy.phone }}), send:</p>
+        <p class="sms-bubble in" style="font-family:ui-monospace,Consolas,monospace">STOCK Paracetamol 500mg 40 120</p>
+        <p class="small" style="margin:0">Format: STOCK &lt;medicine&gt; &lt;quantity&gt; [price]. Send LIST to see your stock, HELP for commands. On a basic phone you can also dial <strong>{{ ussd_code }}</strong> and choose <strong>5</strong>.</p>
+      </div>
+
+      <div class="card">
+        <h2>Recent history</h2>
+        {% for r in history %}
+          <div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #b4b4b4;font-size:14px">
+            <span>#{{ r.pk }} {{ r.inventory.medicine.name }} ×{{ r.quantity }}</span>
+            {% if r.status == 'done' %}<span class="badge badge-blue">Picked up</span>{% else %}<span class="badge badge-gray">{% if r.cancel_reason == 'expired' %}Expired{% else %}Cancelled{% endif %}</span>{% endif %}
+          </div>
+        {% empty %}
+          <p class="small" style="margin:0">Completed and cancelled reservations appear here.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.querySelectorAll('.confirm-form').forEach(function (f) {
+    f.addEventListener('submit', function (e) { if (!window.confirm(f.dataset.confirm)) e.preventDefault(); });
+  });
+  // Check for new reservations every 30 seconds and show a banner (no page reload while typing).
+  (function () {
+    var latest = {{ latest_reservation }};
+    var alertBox = document.getElementById('newResAlert');
+    var baseTitle = document.title;
+    function check() {
+      fetch('{% url "dashboard_poll" %}', { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (d && d.latest > latest) {
+            alertBox.hidden = false;
+            document.title = '(' + d.open + ') ' + baseTitle;
+          }
+        }).catch(function () {});
+    }
+    setInterval(check, 30000);
+  })();
+</script>
+{% endblock %}
