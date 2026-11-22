@@ -14,3 +14,6 @@ backups/
 
 # CI workflow kept locally until a GitHub login with "workflow" permission is used
 .github/workflows/
+
+# Uploaded files (prescriptions, licences, photos): never commit them
+media/
