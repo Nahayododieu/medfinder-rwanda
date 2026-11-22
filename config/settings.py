@@ -121,7 +121,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # --- Database ----------------------------------------------------------------
 # SQLite for development. For production set DATABASE_URL, e.g.
 # postgres://user:password@host:5432/medfinder  (requires: pip install psycopg)
-DATABASE_URL = os.getenv('DATABASE_URL', '')
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip().strip('"\'').strip()
+# Forgive a pasted "DATABASE_URL=..." or "psql '...'" in the hosting dashboard.
+for _prefix in ('DATABASE_URL=', 'psql '):
+    if DATABASE_URL.startswith(_prefix):
+        DATABASE_URL = DATABASE_URL[len(_prefix):].strip().strip('"\'').strip()
 if DATABASE_URL.startswith(('postgres://', 'postgresql://')):
     from urllib.parse import parse_qs, unquote
     _db = urlparse(DATABASE_URL)

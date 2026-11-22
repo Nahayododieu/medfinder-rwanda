@@ -10,7 +10,7 @@ services:
     region: frankfurt          # same region as the Neon database (eu-central-1)
     plan: free
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: python manage.py migrate --noinput && gunicorn config.wsgi --workers 2 --timeout 60 --log-file -
+    startCommand: python manage.py db_info && python manage.py migrate --noinput && gunicorn config.wsgi --workers 2 --timeout 60 --log-file -
     healthCheckPath: /healthz/
     autoDeploy: true
     envVars:
