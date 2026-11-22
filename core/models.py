@@ -33,6 +33,11 @@ def prescription_upload_path(instance, filename):
     return f'prescriptions/{timezone.now():%Y/%m}/rx-{get_random_string(16)}.{ext}'
 
 
+def medicine_photo_upload_path(instance, filename):
+    ext = (filename.rsplit('.', 1)[-1] if '.' in filename else 'jpg').lower()[:5]
+    return f'medicine-photos/{timezone.now():%Y/%m}/med-{get_random_string(16)}.{ext}'
+
+
 def license_upload_path(instance, filename):
     ext = (filename.rsplit('.', 1)[-1] if '.' in filename else 'pdf').lower()[:5]
     return f'licenses/{timezone.now():%Y/%m}/{instance.license_no or "pharmacy"}-{timezone.now():%H%M%S}.{ext}'
@@ -196,6 +201,8 @@ class Inventory(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     expiry_date = models.DateField(null=True, blank=True, help_text='Earliest expiry date of this stock.')
     expiry_alert_sent = models.BooleanField(default=False, editable=False)
+    photo = models.FileField(upload_to=medicine_photo_upload_path, blank=True,
+                             help_text='Photo of the real box or packet this pharmacy sells (JPG, PNG or WebP).')
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -204,6 +211,18 @@ class Inventory(models.Model):
 
     def __str__(self):
         return f'{self.medicine.name} @ {self.pharmacy.name}'
+
+    @property
+    def photo_url(self):
+        """Full-size (phone-friendly) photo link, or '' when there is no photo."""
+        return self.photo.storage.url(self.photo.name) if self.photo else ''
+
+    @property
+    def photo_thumb_url(self):
+        if not self.photo:
+            return ''
+        storage = self.photo.storage
+        return storage.thumb_url(self.photo.name) if hasattr(storage, 'thumb_url') else storage.url(self.photo.name)
 
     @property
     def is_low(self):

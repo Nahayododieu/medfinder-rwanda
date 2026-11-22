@@ -190,8 +190,16 @@ USE_TZ = True
 # --- Static files ------------------------------------------------------------
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Uploads (licences, prescriptions, medicine photos). Render's free disk is wiped on every
+# restart, so in production set CLOUDINARY_URL (cloudinary://key:secret@cloud_name) to keep them.
+CLOUDINARY_URL = os.getenv('CLOUDINARY_URL', '').strip().strip('"\'').strip()
+if CLOUDINARY_URL.startswith('CLOUDINARY_URL='):
+    CLOUDINARY_URL = CLOUDINARY_URL[len('CLOUDINARY_URL='):]
+if CLOUDINARY_URL:
+    os.environ['CLOUDINARY_URL'] = CLOUDINARY_URL  # the Cloudinary library reads it from here
 STORAGES = {
-    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'default': {'BACKEND': 'core.storage.CloudinaryStorage' if CLOUDINARY_URL.startswith('cloudinary://')
+                else 'django.core.files.storage.FileSystemStorage'},
     # Production: compressed files with cache-busting names (run collectstatic first).
     'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG
                     else 'whitenoise.storage.CompressedManifestStaticFilesStorage'},

@@ -21,3 +21,13 @@ class Command(BaseCommand):
             self.stdout.write(f'DATABASE CHECK: using temporary SQLite. {why}. Data will be lost on restart!')
         else:
             self.stdout.write(f"DATABASE CHECK: using {engine} at {db['HOST']} / {db['NAME']}")
+        backend = settings.STORAGES['default']['BACKEND']
+        if backend.endswith('CloudinaryStorage'):
+            cloud = os.environ.get('CLOUDINARY_URL', '').rsplit('@', 1)[-1]
+            self.stdout.write(f'STORAGE CHECK: uploads are kept on Cloudinary (cloud "{cloud}")')
+        else:
+            raw = os.getenv('CLOUDINARY_URL', '')
+            why = 'CLOUDINARY_URL is not set' if not raw else \
+                f'CLOUDINARY_URL does not start with cloudinary:// (it starts with {raw[:3]!r})'
+            self.stdout.write(f'STORAGE CHECK: uploads are on the local disk ({why}). '
+                              'On Render they are lost on every restart!')

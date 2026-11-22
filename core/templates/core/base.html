@@ -286,6 +286,30 @@
       root.setAttribute('data-theme', next);
       try { sessionStorage.setItem('medfinder-theme-v3', next); } catch (e) {}
     });
+    // Medicine photos: open large in a viewer (falls back to opening the image link)
+    var viewer = document.getElementById('photoViewer');
+    if (viewer && viewer.showModal) {
+      var vImg = document.getElementById('photoViewerImg'), vCap = document.getElementById('photoViewerCaption');
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest('a.med-photo');
+        if (!a) return;
+        e.preventDefault();
+        vImg.src = a.href;
+        vImg.alt = (a.querySelector('img') || {}).alt || '';
+        vCap.textContent = a.dataset.caption || '';
+        viewer.showModal();
+      });
+      document.getElementById('photoViewerClose').addEventListener('click', function () { viewer.close(); });
+      viewer.addEventListener('click', function (e) { if (e.target === viewer) viewer.close(); });
+      viewer.addEventListener('close', function () { vImg.removeAttribute('src'); });
+    }
+    // Dashboard: upload a medicine photo as soon as it is chosen
+    document.addEventListener('change', function (e) {
+      if (!e.target.matches('input[type=file][data-autosubmit]') || !e.target.files.length) return;
+      var label = e.target.closest('label');
+      if (label) label.firstChild.textContent = 'Uploading…';
+      e.target.form.requestSubmit ? e.target.form.requestSubmit() : e.target.form.submit();
+    });
     // Pickup or home delivery: show the address field only for delivery
     document.addEventListener('change', function (e) {
       if (!e.target.matches('.delivery-choice input[name="delivery"]')) return;
@@ -317,6 +341,10 @@
     }
   })();
   </script>
+  <dialog class="photo-viewer" id="photoViewer" aria-label="{{ T.photo_of }}">
+    <img id="photoViewerImg" alt="">
+    <div class="photo-viewer-bar"><span id="photoViewerCaption"></span><button type="button" class="btn btn-sm" id="photoViewerClose">{{ T.close }}</button></div>
+  </dialog>
   <div class="star-field" id="starField" aria-hidden="true"></div>
   <script>
   // Small colourful twinkling stars in the page background

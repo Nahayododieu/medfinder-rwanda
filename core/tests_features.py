@@ -401,3 +401,103 @@ class PharmacyLocationBoundsTests(SimpleTestCase):
             lng.run_validators(3.0)
         lat.run_validators(-2.5967)   # Huye
         lng.run_validators(29.7394)
+
+
+class MedicinePhotoTests(FeatureBase):
+    """Pharmacies upload a photo of the real box; patients see it on search, pharmacy and medicine pages."""
+
+    def upload(self, file, pk=None):
+        self.client.force_login(self.owner)
+        return self.client.post(reverse('stock_photo', args=[pk or self.inventory.pk]), {'photo': file})
+
+    def test_pharmacy_uploads_photo_and_patients_see_it(self):
+        self.upload(png('box.png'))
+        self.inventory.refresh_from_db()
+        self.assertTrue(self.inventory.photo.name.startswith('medicine-photos/'))
+        url = self.inventory.photo_url
+        self.client.logout()
+        for page in (reverse('search') + '?q=Panadol', reverse('pharmacy_detail', args=[self.pharmacy.pk]),
+                     reverse('medicine_detail', args=[self.medicine.pk])):
+            self.assertContains(self.client.get(page), url, msg_prefix=page)
+        served = self.client.get(url)
+        self.assertEqual(served.status_code, 200)
+        self.assertEqual(b''.join(served.streaming_content), PNG)
+
+    def test_webp_and_jpeg_accepted(self):
+        webp = SimpleUploadedFile('box.webp', b'RIFF\x00\x00\x00\x00WEBPVP8 ' + b'\x00' * 32, content_type='image/webp')
+        self.upload(webp)
+        self.inventory.refresh_from_db()
+        self.assertTrue(self.inventory.photo.name.endswith('.webp'))
+        self.upload(SimpleUploadedFile('box.jpg', b'\xff\xd8\xff\xe0' + b'\x00' * 32, content_type='image/jpeg'))
+        self.inventory.refresh_from_db()
+        self.assertTrue(self.inventory.photo.name.endswith('.jpg'))
+
+    def test_fake_or_wrong_files_are_rejected(self):
+        self.upload(SimpleUploadedFile('box.png', b'<html>not an image</html>', content_type='image/png'))
+        self.upload(SimpleUploadedFile('box.pdf', b'%PDF-1.4 ' + b'\x00' * 32, content_type='application/pdf'))
+        self.inventory.refresh_from_db()
+        self.assertFalse(self.inventory.photo)
+
+    def test_cannot_change_another_pharmacys_photo(self):
+        other = self.make_pharmacy('other', 'OTHER-1')
+        self.client.force_login(other.owner)
+        response = self.client.post(reverse('stock_photo', args=[self.inventory.pk]), {'photo': png('x.png')})
+        self.assertEqual(response.status_code, 404)
+        self.inventory.refresh_from_db()
+        self.assertFalse(self.inventory.photo)
+
+    def test_replace_and_remove_delete_old_files(self):
+        self.upload(png('one.png'))
+        self.inventory.refresh_from_db()
+        first = self.inventory.photo.name
+        self.upload(png('two.png'))
+        self.inventory.refresh_from_db()
+        storage = self.inventory.photo.storage
+        self.assertNotEqual(self.inventory.photo.name, first)
+        self.assertFalse(storage.exists(first))
+        second = self.inventory.photo.name
+        self.client.post(reverse('stock_photo', args=[self.inventory.pk]), {'remove': '1'})
+        self.inventory.refresh_from_db()
+        self.assertFalse(self.inventory.photo)
+        self.assertFalse(storage.exists(second))
+
+    def test_private_files_are_not_reachable_through_photo_address(self):
+        response = self.client.get('/media/prescriptions/2026/01/rx-secret.png')
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get('/media/medicine-photos/../prescriptions/rx.png')
+        self.assertEqual(response.status_code, 404)
+
+    def test_dashboard_shows_photo_controls(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('dashboard'))
+        self.assertContains(response, '+ Photo')
+        self.assertContains(response, reverse('stock_photo', args=[self.inventory.pk]))
+
+
+class CloudinaryStorageTests(SimpleTestCase):
+    """The Cloudinary backend keeps licences/prescriptions private and makes medicine photos public."""
+
+    def test_targets_and_urls(self):
+        import os
+        from unittest import mock
+        from .storage import CloudinaryStorage
+        with mock.patch.dict(os.environ, {'CLOUDINARY_URL': 'cloudinary://111:secret@demo-cloud'}):
+            import cloudinary
+            cloudinary.reset_config()
+            s = CloudinaryStorage()
+            self.assertEqual(s._target('prescriptions/2026/01/rx-a.png'),
+                             {'public_id': 'prescriptions/2026/01/rx-a.png', 'resource_type': 'raw', 'type': 'authenticated'})
+            self.assertEqual(s._target('medicine-photos/2026/01/med-a.jpg')['type'], 'upload')
+            url = s.url('medicine-photos/2026/01/med-a.jpg')
+            self.assertIn('res.cloudinary.com/demo-cloud/image/upload/', url)
+            self.assertIn('f_auto', url)
+            self.assertTrue(url.endswith('medicine-photos/2026/01/med-a'))
+            with self.assertRaises(ValueError):
+                s.url('licenses/2026/01/x.pdf')
+            with mock.patch('cloudinary.uploader.upload') as up:
+                from django.core.files.base import ContentFile
+                name = s.save('licenses/2026/01/lic.pdf', ContentFile(b'%PDF-1.4'))
+                self.assertEqual(name, 'licenses/2026/01/lic.pdf')
+                self.assertEqual(up.call_args.kwargs['type'], 'authenticated')
+                self.assertEqual(up.call_args.kwargs['resource_type'], 'raw')
+        cloudinary.reset_config()

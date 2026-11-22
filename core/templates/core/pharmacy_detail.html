@@ -49,7 +49,7 @@
           <tbody>
             {% for i in stock %}
             <tr data-name="{{ i.medicine.name|lower }} {{ i.medicine.generic_name|lower }} {{ i.medicine.category|lower }}">
-              <td data-label="{{ T.nav_medicines }}"><a class="link" href="{% url 'medicine_detail' i.medicine_id %}">{{ i.medicine.name }}</a>{% if i.medicine.requires_prescription %}<span class="tag">Rx</span>{% endif %}{% if i.medicine.generic_name %}<br><span class="small">{{ i.medicine.generic_name }}</span>{% endif %}</td>
+              <td data-label="{{ T.nav_medicines }}">{% include 'core/_med_photo.html' %}<a class="link" href="{% url 'medicine_detail' i.medicine_id %}">{{ i.medicine.name }}</a>{% if i.medicine.requires_prescription %}<span class="tag">Rx</span>{% endif %}{% if i.medicine.generic_name %}<br><span class="small">{{ i.medicine.generic_name }}</span>{% endif %}</td>
               <td class="num" data-label="{{ T.price_from_to }}"><strong>{{ i.price|floatformat:0 }} RWF</strong></td>
               <td class="num" data-label="{{ T.in_stock }}">{{ i.quantity }}</td>
               <td data-label=""><span class="row-actions">

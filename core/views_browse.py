@@ -239,3 +239,15 @@ def sitemap_xml(request):
            f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</urlset>')
     return HttpResponse(xml, content_type='application/xml')
 
+
+
+def medicine_photo_file(request, path):
+    """Medicine photos on the local disk (development, or production without Cloudinary).
+
+    Only the public medicine-photos folder is reachable here; licences and prescriptions are not.
+    """
+    from django.views.static import serve
+    response = serve(request, path, document_root=settings.MEDIA_ROOT)
+    response['Cache-Control'] = 'public, max-age=86400'
+    response['X-Content-Type-Options'] = 'nosniff'
+    return response

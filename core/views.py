@@ -34,7 +34,7 @@ from . import payments
 from .access import OWNER, get_membership, pharmacy_required
 from .analytics import pharmacy_insights, platform_summary
 from .channels import _match_medicine, handle_incoming_sms, ussd_response
-from .forms import (LoginCodeForm, MedicineRequestForm, PaymentForm, PharmacyProfileForm,
+from .forms import (LoginCodeForm, MedicineRequestForm, MedicinePhotoForm, PaymentForm, PharmacyProfileForm,
                     PharmacyRegisterForm, ReservationForm, ReviewForm, StockForm, StockImportForm,
                     SubscriptionPayForm, TrackForm)
 from .i18n import STRINGS
@@ -770,13 +770,53 @@ def update_stock(request, pk):
 
 @pharmacy_required()
 @require_POST
+def stock_photo(request, pk):
+    """Add, replace or remove the photo of the real box a pharmacy sells."""
+    item = get_object_or_404(Inventory, pk=pk, pharmacy=request.pharmacy)  # can only touch own stock
+    old_name = item.photo.name if item.photo else ''
+    if request.POST.get('remove'):
+        if old_name:
+            item.photo = ''
+            item.save(update_fields=['photo'])
+            _delete_stored_file(item.photo.storage, old_name)
+            messages.success(request, f'Photo removed from {item.medicine.name}.')
+        return redirect('dashboard')
+    form = MedicinePhotoForm(request.POST, request.FILES)
+    if not form.is_valid():
+        messages.error(request, ' '.join(form.errors.get('photo', ['Choose a photo to upload.'])))
+        return redirect('dashboard')
+    try:
+        item.photo = form.cleaned_data['photo']
+        item.save(update_fields=['photo'])
+    except Exception:
+        logger.exception('Medicine photo upload failed for inventory %s', item.pk)
+        messages.error(request, 'The photo could not be saved. Please try again in a moment.')
+        return redirect('dashboard')
+    if old_name:
+        _delete_stored_file(item.photo.storage, old_name)
+    messages.success(request, f'Photo saved for {item.medicine.name}. Patients can now see it.')
+    return redirect('dashboard')
+
+
+def _delete_stored_file(storage, name):
+    try:
+        storage.delete(name)
+    except Exception:
+        logger.warning('Could not delete old file %s', name, exc_info=True)
+
+
+@pharmacy_required()
+@require_POST
 def delete_stock(request, pk):
     item = get_object_or_404(Inventory, pk=pk, pharmacy=request.pharmacy)
     if Reservation.objects.filter(inventory=item, status__in=['pending', 'ready']).exists():
         messages.error(request, 'This medicine has open reservations. Complete or cancel them first.')
         return redirect('dashboard')
     log_stock_change(item, 'web', request.user, item.quantity, item.price, deleted=True)
+    photo_name = item.photo.name if item.photo else ''
     item.delete()
+    if photo_name:
+        _delete_stored_file(item.photo.storage, photo_name)
     messages.success(request, 'Medicine removed.')
     return redirect('dashboard')
 

@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views, views_browse, views_extra, views_patient
 from .ratelimit import ratelimit
@@ -81,6 +81,7 @@ urlpatterns = [
     path('dashboard/profile/', views.pharmacy_profile, name='pharmacy_profile'),
     path('dashboard/update/<int:pk>/', views.update_stock, name='update_stock'),
     path('dashboard/delete/<int:pk>/', views.delete_stock, name='delete_stock'),
+    path('dashboard/photo/<int:pk>/', views.stock_photo, name='stock_photo'),
     path('dashboard/reservation/<int:pk>/<str:action>/', views.reservation_action, name='reservation_action'),
 
     # Administrator
@@ -104,6 +105,10 @@ urlpatterns = [
     path('sms/incoming/', views.sms_incoming, name='sms_incoming'),
     path('momo/callback/', views.momo_callback, name='momo_callback'),
     path('airtel/callback/', views.airtel_callback, name='airtel_callback'),
+
+    # Medicine photos are public. With Cloudinary they are served from Cloudinary; without it
+    # (local development) from the media folder. Licences and prescriptions are never served here.
+    re_path(r'^media/(?P<path>medicine-photos/[\w./-]+)$', views_browse.medicine_photo_file, name='medicine_photo_file'),
 
     path('healthz/', views.healthz, name='healthz'),
     path('robots.txt', views.robots_txt, name='robots_txt'),

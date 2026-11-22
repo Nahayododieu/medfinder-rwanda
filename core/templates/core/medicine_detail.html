@@ -51,7 +51,7 @@
           <tbody>
             {% for i in items %}
             <tr>
-              <td data-label="{{ T.nav_find_pharmacy }}"><a class="link" href="{% url 'pharmacy_detail' i.pharmacy_id %}">{{ i.pharmacy.name }}</a><br><span class="small">{{ i.pharmacy.district }}{% if i.pharmacy.is_open_now is True %} · {{ T.open_now }}{% elif i.pharmacy.is_open_now is False %} · {{ T.closed_now }}{% endif %}</span></td>
+              <td data-label="{{ T.nav_find_pharmacy }}">{% include 'core/_med_photo.html' %}<a class="link" href="{% url 'pharmacy_detail' i.pharmacy_id %}">{{ i.pharmacy.name }}</a><br><span class="small">{{ i.pharmacy.district }}{% if i.pharmacy.is_open_now is True %} · {{ T.open_now }}{% elif i.pharmacy.is_open_now is False %} · {{ T.closed_now }}{% endif %}</span></td>
               <td class="num" data-label="{{ T.price_from_to }}"><strong>{{ i.price|floatformat:0 }} RWF</strong></td>
               <td data-label=""><a class="btn btn-sm" href="{% url 'search' %}?q={{ medicine.name|urlencode }}&district={{ i.pharmacy.district|urlencode }}#item-{{ i.pk }}">{{ T.reserve }}</a></td>
             </tr>

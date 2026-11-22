@@ -15,6 +15,7 @@
     </span>
   </div>
   <p class="medicine-name">
+    {% include 'core/_med_photo.html' with i=item big=True %}
     <a href="{% url 'medicine_detail' item.medicine_id %}" title="{{ T.about_medicine }}">{{ item.medicine.name }}</a>
     {% if item.medicine.requires_prescription %}<span class="tag">{{ T.rx_needed }}</span>{% endif %}
   </p>

@@ -62,6 +62,32 @@ def clean_prescription_file(f):
     return f
 
 
+PHOTO_TYPES = ('.jpg', '.jpeg', '.png', '.webp')
+
+
+def clean_medicine_photo(f):
+    """A photo of the medicine box: JPG, PNG or WebP up to 10 MB, checked by content, not only name."""
+    if not f:
+        return f
+    if f.size > 10 * 1024 * 1024:
+        raise forms.ValidationError('The photo is too large (maximum 10 MB).')
+    if not f.name.lower().endswith(PHOTO_TYPES):
+        raise forms.ValidationError('Upload the photo as a JPG, PNG or WebP image.')
+    head = f.read(12)
+    f.seek(0)
+    if not (head.startswith(b'\xff\xd8\xff') or head.startswith(b'\x89PNG')
+            or (head[:4] == b'RIFF' and head[8:12] == b'WEBP')):
+        raise forms.ValidationError('This file does not look like a photo.')
+    return f
+
+
+class MedicinePhotoForm(forms.Form):
+    photo = forms.FileField()
+
+    def clean_photo(self):
+        return clean_medicine_photo(self.cleaned_data.get('photo'))
+
+
 class DeliveryMixin:
     """Pickup (default) or home delivery with an address."""
 
