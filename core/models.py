@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -46,8 +47,11 @@ class Pharmacy(models.Model):
     district = models.CharField(max_length=60, choices=DISTRICT_CHOICES)
     address = models.CharField(max_length=200, blank=True)
     phone = models.CharField(max_length=20)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    # Rwanda's bounding box, so a typo (even in the admin panel) cannot put a pharmacy outside the country.
+    latitude = models.FloatField(validators=[MinValueValidator(-2.9), MaxValueValidator(-1.0)],
+                                 help_text='Rwanda is between -2.9 and -1.0 (e.g. Kigali -1.95, Huye -2.60).')
+    longitude = models.FloatField(validators=[MinValueValidator(28.8), MaxValueValidator(30.95)],
+                                  help_text='Rwanda is between 28.8 and 30.95 (e.g. Kigali 30.06, Huye 29.74).')
     insurers = models.CharField(max_length=100, blank=True,
                                 help_text='Comma-separated insurer codes: ' + ', '.join(c for c, _ in INSURER_CHOICES))
     verified = models.BooleanField(default=False, db_index=True)

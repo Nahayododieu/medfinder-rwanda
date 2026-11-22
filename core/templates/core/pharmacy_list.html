@@ -90,6 +90,7 @@
   if (!el || !window.L || !data.length) return;
   var map = L.map(el, { scrollWheelZoom: false });
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    referrerPolicy: 'strict-origin-when-cross-origin',  // OpenStreetMap refuses tiles sent without a Referer
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
   }).addTo(map);
   function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }

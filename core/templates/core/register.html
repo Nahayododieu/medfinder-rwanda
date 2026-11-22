@@ -64,6 +64,7 @@
   var msg = document.getElementById('geomsg');
   var map = L.map('pickmap').setView([-1.9441, 30.0619], 12);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    referrerPolicy: 'strict-origin-when-cross-origin',  // OpenStreetMap refuses tiles sent without a Referer
     attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
   var marker = null;
   function place(lat, lng, zoom) {

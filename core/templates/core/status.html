@@ -7,7 +7,7 @@
     <p>Checked {{ now|date:"d M Y, H:i" }} (Kigali time).</p></div></div>
   <div class="card">
     {% for name, state, note in checks %}
-      <div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;{% if not forloop.last %}border-bottom:1px solid #b4b4b4{% endif %}">
+      <div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;{% if not forloop.last %}border-bottom:1px solid var(--line){% endif %}">
         <strong>{{ name }}</strong>
         <span>{% if state == 'ok' %}<span class="badge badge-green">{{ note }}</span>{% elif state == 'info' %}<span class="badge badge-gray">{{ note }}</span>{% elif state == 'warn' %}<span class="badge badge-amber">{{ note }}</span>{% else %}<span class="badge badge-red">{{ note }}</span>{% endif %}</span>
       </div>

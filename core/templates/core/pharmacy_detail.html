@@ -71,7 +71,7 @@
       <div class="card">
         <div id="map" class="mini-map" role="region" aria-label="{{ pharmacy.name }}"></div>
         <dl class="detail-list" style="margin-top:16px">
-          <dt>{{ T.address_label }}</dt><dd>{{ pharmacy.address|default:"—" }}, {{ pharmacy.district }}</dd>
+          <dt>{{ T.address_label }}</dt><dd>{% if pharmacy.address %}{{ pharmacy.address }}, {% endif %}{{ pharmacy.district }}</dd>
           <dt>{{ T.contact_label }}</dt><dd><a class="link" href="tel:{{ pharmacy.phone }}">{{ pharmacy.phone }}</a></dd>
           <dt>{{ T.hours }}</dt><dd>{{ pharmacy.hours_display|default:"—" }}</dd>
           <dt>{{ T.delivery_option }}</dt><dd>{% if pharmacy.offers_delivery %}{% if pharmacy.delivery_fee %}{{ pharmacy.delivery_fee|floatformat:0 }} RWF{% else %}{{ T.free }}{% endif %}{% if pharmacy.delivery_area %} · {{ pharmacy.delivery_area }}{% endif %}{% else %}—{% endif %}</dd>
@@ -117,6 +117,7 @@
   if (!el || !window.L) return;
   var map = L.map(el, { scrollWheelZoom: false }).setView([p.lat, p.lng], 15);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    referrerPolicy: 'strict-origin-when-cross-origin',  // OpenStreetMap refuses tiles sent without a Referer
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19
   }).addTo(map);
   L.marker([p.lat, p.lng]).addTo(map);

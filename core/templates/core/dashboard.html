@@ -134,7 +134,7 @@
               <td data-label="Medicine"><span>{{ item.medicine.name }}{% if item.quantity == 0 %} <span class="badge badge-red">Out</span>{% elif item.is_low %} <span class="badge badge-amber">Low</span>{% endif %}{% if item.expiry_state == 'expired' %} <span class="badge badge-red">Expired</span>{% elif item.expiry_state == 'soon' %} <span class="badge badge-amber">Expires soon</span>{% endif %}</span></td>
               <td data-label="Quantity"><input form="upd-{{ item.pk }}" type="number" name="quantity" min="0" value="{{ item.quantity }}" aria-label="Quantity for {{ item.medicine.name }}"></td>
               <td data-label="Price (RWF)"><input form="upd-{{ item.pk }}" type="number" name="price" min="0" step="any" value="{{ item.price|floatformat:0 }}" aria-label="Price for {{ item.medicine.name }}"></td>
-              <td data-label="Expiry"><input form="upd-{{ item.pk }}" type="date" name="expiry_date" value="{{ item.expiry_date|date:'Y-m-d' }}" aria-label="Expiry date for {{ item.medicine.name }}" style="width:150px;min-height:36px;padding:5px 8px;border:1px solid #c0c0c0;border-radius:8px"></td>
+              <td data-label="Expiry"><input form="upd-{{ item.pk }}" type="date" name="expiry_date" value="{{ item.expiry_date|date:'Y-m-d' }}" aria-label="Expiry date for {{ item.medicine.name }}" style="width:150px;min-height:36px;padding:5px 8px;border:1px solid var(--field-line);border-radius:8px"></td>
               <td data-label="Updated" class="small nowrap">{{ item.updated_at|timesince }} ago</td>
               <td data-label="">
                 <div class="actions">
@@ -175,7 +175,7 @@
           <button class="btn btn-sm" type="submit">Send request</button>
         </form>
         {% for r in my_requests %}
-          <div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #b4b4b4;font-size:14px">
+          <div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px">
             <span>{{ r.name }}</span>
             {% if r.status == 'added' %}<span class="badge badge-green">Added</span>{% elif r.status == 'rejected' %}<span class="badge badge-gray">Not added</span>{% else %}<span class="badge badge-amber">Waiting</span>{% endif %}
           </div>
@@ -206,7 +206,7 @@
       <div class="card">
         <h2>Recent history</h2>
         {% for r in history %}
-          <div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #b4b4b4;font-size:14px">
+          <div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px">
             <span>#{{ r.pk }} {{ r.inventory.medicine.name }} ×{{ r.quantity }}</span>
             {% if r.status == 'done' %}<span class="badge badge-blue">Picked up</span>{% else %}<span class="badge badge-gray">{% if r.cancel_reason == 'expired' %}Expired{% else %}Cancelled{% endif %}</span>{% endif %}
           </div>

@@ -6,7 +6,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
+from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -386,3 +386,18 @@ class MedicineCatalogueCommandTests(BaseTestCase):
         self.assertEqual(Medicine.objects.count(), n)
         self.assertFalse(Medicine.objects.filter(reference_price__isnull=False).exists())
         self.assertTrue(Medicine.objects.filter(name='Coartem 20/120', requires_prescription=True).exists())
+
+
+class PharmacyLocationBoundsTests(SimpleTestCase):
+    """A typo (even in the admin panel) must not put a pharmacy outside Rwanda on the map."""
+
+    def test_coordinates_outside_rwanda_are_rejected(self):
+        from django.core.exceptions import ValidationError
+        from .models import Pharmacy
+        lat, lng = Pharmacy._meta.get_field('latitude'), Pharmacy._meta.get_field('longitude')
+        with self.assertRaises(ValidationError):
+            lat.run_validators(18.0)
+        with self.assertRaises(ValidationError):
+            lng.run_validators(3.0)
+        lat.run_validators(-2.5967)   # Huye
+        lng.run_validators(29.7394)
