@@ -1122,3 +1122,55 @@ def language_context(request):
                 'price': settings.SUBSCRIPTION_PRICE_RWF,
                 'commission_pct': round(settings.PLATFORM_COMMISSION_RATE * 100, 1),
             }}
+
+
+# Welcome page shown on a visitor's first visit (language choice + what MedFinder does).
+WELCOME_STRINGS = {
+    'en': {
+        'welcome_to': 'Welcome to',
+        'welcome_tagline': 'Find the medicine you need at verified pharmacies across Rwanda.',
+        'welcome_p1_title': 'Search any medicine',
+        'welcome_p1': 'Type a brand or generic name and see which pharmacies have it in stock.',
+        'welcome_p2_title': 'Compare prices, find the nearest pharmacy',
+        'welcome_p2': 'Real prices from each pharmacy, with opening hours, a map and directions.',
+        'welcome_p3_title': 'Reserve, then collect',
+        'welcome_p3': 'Hold your medicine with a pickup code. Pay at the counter or with MTN MoMo or Airtel Money.',
+        'welcome_ussd': 'No internet? Dial',
+        'welcome_choose': 'Choose your language',
+        'welcome_continue': 'Continue',
+        'welcome_note': 'You can change the language at any time from the menu.',
+        'welcome_art': 'Drawing of medicines: a pill bottle, a blister pack and capsules',
+    },
+    'rw': {
+        'welcome_to': 'Murakaza neza kuri',
+        'welcome_tagline': 'Shaka umuti ukeneye muri farumasi zemewe mu Rwanda hose.',
+        'welcome_p1_title': 'Shakisha umuti uwo ari wo wose',
+        'welcome_p1': 'Andika izina ry’umuti cyangwa izina ryawo rusange, urebe farumasi ziwufite.',
+        'welcome_p2_title': 'Gereranya ibiciro, ubone farumasi ikwegereye',
+        'welcome_p2': 'Ibiciro nyabyo bya buri farumasi, amasaha ikora, ikarita n’inzira yo kuhagera.',
+        'welcome_p3_title': 'Bikisha umuti, hanyuma uze kuwufata',
+        'welcome_p3': 'Bikisha umuti wawe ukoresheje kode. Wishyura kuri farumasi cyangwa ukoresheje MTN MoMo cyangwa Airtel Money.',
+        'welcome_ussd': 'Nta interineti? Kanda',
+        'welcome_choose': 'Hitamo ururimi',
+        'welcome_continue': 'Komeza',
+        'welcome_note': 'Ushobora guhindura ururimi igihe icyo ari cyo cyose ukoresheje menu.',
+        'welcome_art': 'Igishushanyo cy’imiti: icupa ry’ibinini, agapaki k’ibinini n’ibinini bya kapsule',
+    },
+    'fr': {
+        'welcome_to': 'Bienvenue sur',
+        'welcome_tagline': 'Trouvez le médicament dont vous avez besoin dans les pharmacies vérifiées de tout le Rwanda.',
+        'welcome_p1_title': 'Cherchez n’importe quel médicament',
+        'welcome_p1': 'Tapez le nom commercial ou générique et voyez quelles pharmacies l’ont en stock.',
+        'welcome_p2_title': 'Comparez les prix, trouvez la pharmacie la plus proche',
+        'welcome_p2': 'Les vrais prix de chaque pharmacie, avec horaires, carte et itinéraire.',
+        'welcome_p3_title': 'Réservez, puis récupérez',
+        'welcome_p3': 'Réservez votre médicament avec un code de retrait. Payez au comptoir ou par MTN MoMo ou Airtel Money.',
+        'welcome_ussd': 'Pas d’internet ? Composez',
+        'welcome_choose': 'Choisissez votre langue',
+        'welcome_continue': 'Continuer',
+        'welcome_note': 'Vous pouvez changer de langue à tout moment depuis le menu.',
+        'welcome_art': 'Dessin de médicaments : un flacon de comprimés, une plaquette et des gélules',
+    },
+}
+for _code, _extra in WELCOME_STRINGS.items():
+    STRINGS[_code].update(_extra)

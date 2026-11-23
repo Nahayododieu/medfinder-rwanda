@@ -94,6 +94,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.SecurityHeadersMiddleware',
+    'core.middleware.WelcomeMiddleware',  # first visit: welcome page with the language choice
 ]
 
 ROOT_URLCONF = 'config.urls'

@@ -251,3 +251,45 @@ def medicine_photo_file(request, path):
     response['Cache-Control'] = 'public, max-age=86400'
     response['X-Content-Type-Options'] = 'nosniff'
     return response
+
+
+WELCOME_COOKIE = 'mf_welcome'
+
+
+def _welcome_next(request, value):
+    """Where to go after the welcome page: a page on this site, never the welcome page itself."""
+    if (value and value.startswith('/') and not value.startswith('/welcome')
+            and url_has_allowed_host_and_scheme(value, allowed_hosts={request.get_host()})):
+        return value
+    return reverse('search')
+
+
+def _guess_language(request):
+    """The language already chosen, else the browser's preferred one among ours, else English."""
+    from .i18n import STRINGS
+    if request.session.get('lang') in STRINGS:
+        return request.session['lang']
+    for part in request.headers.get('Accept-Language', '').split(','):
+        code = part.split(';')[0].strip().lower()[:2]
+        if code in STRINGS:
+            return code
+    return 'en'
+
+
+def welcome(request):
+    """First-visit page: what MedFinder does, and the language choice."""
+    from .i18n import LANGUAGE_MENU, WELCOME_STRINGS
+    if request.method == 'POST':
+        lang = request.POST.get('lang', '')
+        if lang in WELCOME_STRINGS:
+            request.session['lang'] = lang
+        response = redirect(_welcome_next(request, request.POST.get('next', '')))
+        response.set_cookie(WELCOME_COOKIE, '1', max_age=365 * 24 * 3600, samesite='Lax',
+                            secure=request.is_secure(), httponly=True)
+        return response
+    chosen = _guess_language(request)
+    return render(request, 'core/welcome.html', {
+        'W': strings_for(chosen), 'chosen': chosen, 'language_menu': LANGUAGE_MENU,
+        'next': _welcome_next(request, request.GET.get('next', '')),
+        'welcome_texts': WELCOME_STRINGS, 'ussd_code': settings.USSD_CODE,
+    })

@@ -1041,3 +1041,64 @@ code { padding: 1px 5px; border-radius: 5px; background: var(--soft); font-size:
 .photo-status.is-ok { background: var(--soft); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
 .photo-status.is-error { background: var(--ink-bg); color: var(--on-accent); }
 tr:target { scroll-margin-top: 90px; }
+
+/* ==========================================================================
+   Welcome page (first visit): what MedFinder does + language choice
+   ========================================================================== */
+.welcome-body { min-height: 100vh; min-height: 100dvh; background: radial-gradient(ellipse at 85% 0%, rgba(255, 169, 0, .35), transparent 45%), radial-gradient(ellipse at 0% 100%, rgba(255, 243, 191, .55), transparent 40%), var(--canvas); }
+:root[data-theme="light"] .welcome-body { background: radial-gradient(ellipse at 85% 0%, rgba(128, 128, 128, .35), transparent 45%), var(--canvas); }
+.welcome { display: grid; gap: 28px; width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: max(28px, env(safe-area-inset-top)) 0 max(28px, env(safe-area-inset-bottom)); }
+.welcome-intro { text-align: center; }
+.welcome-brand { display: inline-flex; align-items: center; gap: 10px; font-size: 17px; }
+.welcome-brand .brand-mark { width: 36px; height: 36px; border-radius: 11px; }
+.welcome-art { display: block; width: min(100%, 380px); height: auto; margin: 18px auto 6px; }
+.wa-ink { fill: var(--ink); }
+.wa-paper { fill: var(--paper); }
+.wa-soft { fill: var(--soft); }
+.wa-accent { fill: var(--g-a8); }
+.wa-stroke { stroke: var(--ink); stroke-width: 3; }
+.wa-pill circle { fill: var(--g-a8); stroke: var(--ink); stroke-width: 2.5; }
+.wa-empty { fill: none; stroke: var(--line); stroke-width: 2.5; stroke-dasharray: 4 4; }
+.wa-tablet circle { fill: var(--paper); stroke: var(--ink); stroke-width: 2.5; }
+.wa-tablet path { stroke: var(--line); stroke-width: 2; stroke-linecap: round; }
+.welcome-eyebrow { margin: 6px 0 0; color: var(--muted); font-size: 18px; font-weight: 650; }
+.welcome h1 { margin: 0; font-size: clamp(38px, 9vw, 60px); font-weight: 860; line-height: 1.02; letter-spacing: -.045em; }
+.welcome-tagline { max-width: 460px; margin: 12px auto 0; color: var(--ink-2); font-size: clamp(16px, 2.4vw, 19px); line-height: 1.5; }
+.welcome-points { display: grid; gap: 10px; max-width: 480px; margin: 22px auto 0; padding: 0; list-style: none; text-align: left; }
+.welcome-points li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.welcome-points strong { display: block; font-size: 15px; line-height: 1.35; }
+.welcome-points li span > span { display: block; margin-top: 2px; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.welcome-icon { display: grid; flex: none; width: 38px; height: 38px; place-items: center; border-radius: 11px; background: var(--ink-bg); color: var(--on-accent); }
+.welcome-ussd { margin: 16px 0 0; color: var(--muted); font-size: 14px; }
+.welcome-ussd strong { padding: 2px 8px; border-radius: 7px; background: var(--ink-bg); color: var(--on-accent); }
+.welcome-card { align-self: start; padding: 22px; border: 1px solid var(--line); border-radius: 22px; background: var(--paper); box-shadow: var(--shadow); }
+.welcome-card fieldset { margin: 0; padding: 0; border: 0; }
+.welcome-card legend { margin-bottom: 12px; font-size: 18px; font-weight: 780; }
+.welcome-langs { display: grid; gap: 10px; }
+.welcome-lang { position: relative; display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 12px 16px; border: 2px solid var(--line); border-radius: 15px; background: var(--field); cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.welcome-lang input { position: absolute; opacity: 0; pointer-events: none; }
+.welcome-lang-text { display: grid; flex: 1; }
+.welcome-lang-text strong { font-size: 17px; }
+.welcome-lang-text small { color: var(--muted); font-size: 12.5px; }
+.welcome-check { display: grid; width: 26px; height: 26px; place-items: center; border: 2px solid var(--line); border-radius: 50%; color: transparent; }
+.welcome-lang:hover { border-color: var(--ink); }
+.welcome-lang:has(input:checked) { border-color: var(--ink); background: var(--soft); }
+.welcome-lang:has(input:checked) .welcome-check { border-color: var(--ink-bg); background: var(--ink-bg); color: var(--on-accent); }
+.welcome-lang:has(input:focus-visible) { outline: 3px solid rgba(58, 58, 58, .38); outline-offset: 3px; }
+.welcome-continue { width: 100%; min-height: 56px; margin-top: 16px; border-radius: 15px; font-size: 17px; }
+.welcome-note { margin: 12px 0 0; text-align: center; }
+.welcome-more { text-align: center; }
+@media (max-width: 899px) {
+  .welcome { gap: 22px; }
+  .welcome-art { width: min(100%, 300px); margin-top: 12px; }
+}
+@media (min-width: 900px) {
+  .welcome { grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); grid-template-areas: "intro card" "more card";
+             align-content: center; column-gap: 48px; row-gap: 18px; min-height: 100vh; min-height: 100dvh; }
+  .welcome-intro { grid-area: intro; text-align: left; }
+  .welcome-card { grid-area: card; align-self: center; }
+  .welcome-more { grid-area: more; text-align: left; }
+  .welcome-more .welcome-points { margin-top: 0; }
+  .welcome-art { margin: 22px 0 8px; }
+  .welcome-tagline, .welcome-points { margin-left: 0; }
+}

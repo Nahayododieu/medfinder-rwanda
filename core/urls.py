@@ -46,6 +46,7 @@ urlpatterns = [
     path('terms/', views.terms, name='terms'),
     path('pharmacies/', views.for_pharmacies, name='for_pharmacies'),
     path('lang/<str:lang>/', views.set_language, name='set_language'),
+    path('welcome/', views_browse.welcome, name='welcome'),
 
     # Pharmacies
     path('login/', views.RateLimitedLoginView.as_view(), name='login'),

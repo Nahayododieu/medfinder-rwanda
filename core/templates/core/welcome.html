@@ -1,0 +1,120 @@
+{% load static %}<!DOCTYPE html>
+<html lang="{{ chosen }}" data-theme="yellow">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffd43b">
+  <meta name="robots" content="noindex">
+  <title>{{ W.welcome_to }} MedFinder Rwanda</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23000000'/%3E%3Cpath d='M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4Z' fill='%23c0c0c0'/%3E%3C/svg%3E">
+  <link rel="manifest" href="{% url 'manifest' %}">
+  <script>try{var t=sessionStorage.getItem('medfinder-theme-v3');document.documentElement.setAttribute('data-theme',t==='light'?'light':'yellow');}catch(e){}</script>
+  <link rel="stylesheet" href="{% static 'core/css/site.css' %}">
+</head>
+<body class="welcome-body">
+  <main class="welcome" id="main-content">
+    <section class="welcome-intro" aria-labelledby="welcome-title">
+      <div class="welcome-brand">
+        <span class="brand-mark" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7V3Z" fill="currentColor"/></svg></span>
+        <span class="brand-name">MedFinder <span>Rwanda</span></span>
+      </div>
+
+      <svg class="welcome-art" viewBox="0 0 340 210" role="img" aria-labelledby="welcome-art-title">
+        <title id="welcome-art-title" data-w="welcome_art">{{ W.welcome_art }}</title>
+        <ellipse class="wa-paper" cx="170" cy="112" rx="160" ry="92"/>
+        <!-- map pin: "near you" -->
+        <g transform="translate(272 18)">
+          <path class="wa-ink" d="M24 0C10.7 0 0 10.4 0 23.3 0 40.8 24 62 24 62s24-21.2 24-38.7C48 10.4 37.3 0 24 0Z"/>
+          <path class="wa-accent" d="M20.5 11h7v8.8h8.8v7h-8.8v8.7h-7v-8.7h-8.8v-7h8.8V11Z"/>
+        </g>
+        <!-- pill bottle -->
+        <rect class="wa-accent wa-stroke" x="46" y="38" width="72" height="26" rx="7"/>
+        <rect class="wa-ink" x="40" y="60" width="84" height="122" rx="16"/>
+        <rect class="wa-paper" x="52" y="92" width="60" height="54" rx="8"/>
+        <path class="wa-ink" d="M77 101h10v12h12v10H87v12H77v-12H65v-10h12v-12Z"/>
+        <!-- blister pack -->
+        <g transform="rotate(-8 222 112)">
+          <rect class="wa-soft wa-stroke" x="150" y="66" width="140" height="92" rx="14"/>
+          <g class="wa-pill">
+            <circle cx="182" cy="96" r="13"/><circle cx="220" cy="96" r="13"/><circle cx="258" cy="96" r="13"/>
+            <circle cx="182" cy="130" r="13"/><circle cx="220" cy="130" r="13"/>
+          </g>
+          <circle class="wa-empty" cx="258" cy="130" r="13"/>
+        </g>
+        <!-- capsules -->
+        <g transform="rotate(-32 252 182)">
+          <path class="wa-ink" d="M232 172h20v20h-20a10 10 0 0 1 0-20Z"/>
+          <path class="wa-accent wa-stroke" d="M252 172h20a10 10 0 0 1 0 20h-20Z"/>
+        </g>
+        <g transform="rotate(22 300 168)">
+          <path class="wa-accent wa-stroke" d="M282 160h18v16h-18a8 8 0 0 1 0-16Z"/>
+          <path class="wa-ink" d="M300 160h18a8 8 0 0 1 0 16h-18Z"/>
+        </g>
+        <!-- round tablets -->
+        <g class="wa-tablet"><circle cx="146" cy="186" r="12"/><path d="M137 186h18"/></g>
+        <g class="wa-tablet"><circle cx="176" cy="192" r="10"/><path d="M169 192h14"/></g>
+      </svg>
+
+      <p class="welcome-eyebrow" data-w="welcome_to">{{ W.welcome_to }}</p>
+      <h1 id="welcome-title">MedFinder Rwanda</h1>
+      <p class="welcome-tagline" data-w="welcome_tagline">{{ W.welcome_tagline }}</p>
+    </section>
+
+    <form class="welcome-card" method="post" action="{% url 'welcome' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <fieldset>
+        <legend data-w="welcome_choose">{{ W.welcome_choose }}</legend>
+        <div class="welcome-langs">
+          {% for code, native, english in language_menu %}
+          <label class="welcome-lang">
+            <input type="radio" name="lang" value="{{ code }}"{% if code == chosen %} checked{% endif %}>
+            <span class="welcome-lang-text"><strong>{{ native }}</strong>{% if native != english %}<small>{{ english }}</small>{% endif %}</span>
+            <span class="welcome-check" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <button type="submit" class="btn welcome-continue"><span data-w="welcome_continue">{{ W.welcome_continue }}</span> →</button>
+      <p class="small welcome-note" data-w="welcome_note">{{ W.welcome_note }}</p>
+    </form>
+
+    <section class="welcome-more" aria-label="MedFinder">
+      <ul class="welcome-points">
+        <li>
+          <span class="welcome-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <span><strong data-w="welcome_p1_title">{{ W.welcome_p1_title }}</strong><span data-w="welcome_p1">{{ W.welcome_p1 }}</span></span>
+        </li>
+        <li>
+          <span class="welcome-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.2 7-11.5a7 7 0 1 0-14 0C5 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2"/></svg></span>
+          <span><strong data-w="welcome_p2_title">{{ W.welcome_p2_title }}</strong><span data-w="welcome_p2">{{ W.welcome_p2 }}</span></span>
+        </li>
+        <li>
+          <span class="welcome-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9L5 8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 0 1 6 0v2M9.5 14l2 2 3.5-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><strong data-w="welcome_p3_title">{{ W.welcome_p3_title }}</strong><span data-w="welcome_p3">{{ W.welcome_p3 }}</span></span>
+        </li>
+      </ul>
+      <p class="welcome-ussd"><span data-w="welcome_ussd">{{ W.welcome_ussd }}</span> <strong>{{ ussd_code }}</strong></p>
+    </section>
+
+  </main>
+  {{ welcome_texts|json_script:"welcome-texts" }}
+  <script>
+  (function () {
+    // Switch the page text as soon as a language is tapped (the choice is saved on Continue).
+    var texts = JSON.parse(document.getElementById('welcome-texts').textContent);
+    document.querySelectorAll('.welcome-lang input').forEach(function (input) {
+      input.addEventListener('change', function () {
+        var t = texts[input.value];
+        if (!t) return;
+        document.documentElement.lang = input.value;
+        document.querySelectorAll('[data-w]').forEach(function (el) {
+          if (t[el.dataset.w]) el.textContent = t[el.dataset.w];
+        });
+        document.title = t.welcome_to + ' MedFinder Rwanda';
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

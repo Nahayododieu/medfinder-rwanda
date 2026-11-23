@@ -520,3 +520,61 @@ class CloudinaryStorageTests(SimpleTestCase):
                 self.assertEqual(up.call_args.kwargs['type'], 'authenticated')
                 self.assertEqual(up.call_args.kwargs['resource_type'], 'raw')
         cloudinary.reset_config()
+
+
+BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36'
+
+
+class WelcomePageTests(BaseTestCase):
+    """First visit: a welcome page explains MedFinder and lets the visitor choose a language."""
+
+    def visit(self, path, agent=BROWSER, **extra):
+        return self.client.get(path, HTTP_USER_AGENT=agent, HTTP_ACCEPT='text/html,application/xhtml+xml', **extra)
+
+    def test_first_visit_goes_to_welcome_and_back(self):
+        page = reverse('medicine_detail', args=[self.medicine.pk])
+        response = self.visit(page)
+        self.assertRedirects(response, f"{reverse('welcome')}?next={page}", fetch_redirect_response=False)
+        welcome = self.visit(response['Location'])
+        self.assertContains(welcome, 'Welcome to')
+        self.assertContains(welcome, 'Choose your language')
+        self.assertContains(welcome, 'Ikinyarwanda')
+        done = self.client.post(reverse('welcome'), {'lang': 'rw', 'next': page})
+        self.assertRedirects(done, page, fetch_redirect_response=False)
+        self.assertEqual(self.client.session['lang'], 'rw')
+        again = self.visit(reverse('search'))
+        self.assertEqual(again.status_code, 200)  # not sent to the welcome page again
+        self.assertContains(again, '<html lang="rw"')
+
+    def test_never_for_bots_previews_monitors_or_scripts(self):
+        for agent in ('Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+                      'WhatsApp/2.23.20 A', 'facebookexternalhit/1.1', 'Mozilla/5.0+(compatible; UptimeRobot/2.0)',
+                      'curl/8.4.0', ''):
+            self.assertEqual(self.visit(reverse('search'), agent=agent).status_code, 200, agent)
+
+    def test_never_for_pharmacy_pages_sms_links_or_logged_in_users(self):
+        for path in (reverse('login'), reverse('track'), reverse('healthz'), reverse('register')):
+            self.assertNotEqual(self.visit(path).get('Location', '').split('?')[0], reverse('welcome'), path)
+        self.client.force_login(self.owner)
+        self.assertEqual(self.visit(reverse('search')).status_code, 200)
+
+    def test_choosing_language_from_menu_skips_welcome(self):
+        self.client.get(reverse('set_language', args=['fr']))
+        self.assertEqual(self.visit(reverse('search')).status_code, 200)
+
+    def test_browser_language_is_preselected(self):
+        response = self.visit(reverse('welcome'), HTTP_ACCEPT_LANGUAGE='fr-FR,fr;q=0.9,en;q=0.8')
+        self.assertContains(response, 'Bienvenue sur')
+        self.assertContains(response, 'value="fr" checked')
+
+    def test_next_cannot_leave_the_site(self):
+        for bad in ('https://evil.example/', '//evil.example/x', '/welcome/?next=/'):
+            response = self.client.post(reverse('welcome'), {'lang': 'en', 'next': bad})
+            self.assertEqual(response['Location'], reverse('search'), bad)
+
+    def test_all_languages_have_all_welcome_texts(self):
+        from .i18n import WELCOME_STRINGS
+        keys = set(WELCOME_STRINGS['en'])
+        for code, texts in WELCOME_STRINGS.items():
+            self.assertEqual(set(texts), keys, code)
+            self.assertTrue(all(v.strip() for v in texts.values()), code)

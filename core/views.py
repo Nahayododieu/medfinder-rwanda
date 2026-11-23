@@ -315,7 +315,11 @@ def set_language(request, lang):
     target = request.GET.get('next', '')
     if not url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}):
         target = reverse('search')
-    return redirect(target)
+    response = redirect(target)
+    # Someone who picks a language from the menu does not need the welcome page any more.
+    response.set_cookie('mf_welcome', '1', max_age=365 * 24 * 3600, samesite='Lax',
+                        secure=request.is_secure(), httponly=True)
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -971,7 +975,7 @@ def healthz(request):
 
 
 def robots_txt(request):
-    lines = ['User-agent: *', 'Disallow: /dashboard/', 'Disallow: /admin/', 'Disallow: /analytics/',
+    lines = ['User-agent: *', 'Disallow: /dashboard/', 'Disallow: /admin/', 'Disallow: /analytics/', 'Disallow: /welcome/',
              'Disallow: /tools/', 'Disallow: /reservation/', 'Allow: /',
              'Sitemap: ' + request.build_absolute_uri(reverse('sitemap'))]
     return HttpResponse('\n'.join(lines) + '\n', content_type='text/plain')
