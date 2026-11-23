@@ -792,9 +792,12 @@ def stock_photo(request, pk):
     try:
         item.photo = form.cleaned_data['photo']
         item.save(update_fields=['photo'])
-    except Exception:
+    except Exception as exc:
         logger.exception('Medicine photo upload failed for inventory %s', item.pk)
-        return _photo_result(request, item, False, 'The photo could not be saved. Please try again in a moment.')
+        text = 'The photo could not be saved. Please try again in a moment.'
+        if request.user.is_superuser:  # the site owner sees the storage service's reason (never contains secrets)
+            text += f' Technical reason: {type(exc).__name__}: {str(exc)[:200]}'
+        return _photo_result(request, item, False, text)
     if old_name:
         _delete_stored_file(item.photo.storage, old_name)
     logger.info('Medicine photo saved for inventory %s: %s', item.pk, item.photo.name)

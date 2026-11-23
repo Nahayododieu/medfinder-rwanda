@@ -25,6 +25,16 @@ class Command(BaseCommand):
         if backend.endswith('CloudinaryStorage'):
             cloud = os.environ.get('CLOUDINARY_URL', '').rsplit('@', 1)[-1]
             self.stdout.write(f'STORAGE CHECK: uploads are kept on Cloudinary (cloud "{cloud}")')
+            secret = os.environ.get('CLOUDINARY_URL', '').split('://', 1)[-1].rsplit('@', 1)[0].partition(':')[2]
+            if not secret or set(secret) <= {'*'}:
+                self.stdout.write('STORAGE CHECK: the API secret in CLOUDINARY_URL is missing or hidden (*****). '
+                                  'Copy it again from Cloudinary with the secret revealed.')
+            try:
+                import cloudinary.api
+                cloudinary.api.ping()
+                self.stdout.write('STORAGE CHECK: Cloudinary login OK')
+            except Exception as exc:  # the message never contains the secret
+                self.stdout.write(f'STORAGE CHECK: Cloudinary login FAILED: {type(exc).__name__}: {str(exc)[:200]}')
         else:
             raw = os.getenv('CLOUDINARY_URL', '')
             why = 'CLOUDINARY_URL is not set' if not raw else \
