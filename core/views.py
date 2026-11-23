@@ -556,6 +556,7 @@ def dashboard(request):
     latest = max((r.pk for r in reservations), default=0)
     return render(request, 'core/dashboard.html', {
         'pharmacy': pharmacy, 'form': form, 'items': shown_items, 'all_count': len(items),
+        'photo_msg': request.session.pop('photo_msg', None),
         'stock_q': stock_q, 'is_owner': request.pharmacy_role == OWNER, 'expiring': expiring,
         'expiry_days': settings.EXPIRY_ALERT_DAYS,
         'reservations': reservations, 'history': history,
@@ -783,19 +784,28 @@ def stock_photo(request, pk):
         return redirect('dashboard')
     form = MedicinePhotoForm(request.POST, request.FILES)
     if not form.is_valid():
-        messages.error(request, ' '.join(form.errors.get('photo', ['Choose a photo to upload.'])))
-        return redirect('dashboard')
+        text = ' '.join(form.errors.get('photo', ['Choose a photo to upload.']))
+        upload = request.FILES.get('photo')
+        logger.warning('Medicine photo rejected for inventory %s: %s (file %r, %s bytes)', item.pk, text,
+                       getattr(upload, 'name', None), getattr(upload, 'size', None))
+        return _photo_result(request, item, False, text)
     try:
         item.photo = form.cleaned_data['photo']
         item.save(update_fields=['photo'])
     except Exception:
         logger.exception('Medicine photo upload failed for inventory %s', item.pk)
-        messages.error(request, 'The photo could not be saved. Please try again in a moment.')
-        return redirect('dashboard')
+        return _photo_result(request, item, False, 'The photo could not be saved. Please try again in a moment.')
     if old_name:
         _delete_stored_file(item.photo.storage, old_name)
-    messages.success(request, f'Photo saved for {item.medicine.name}. Patients can now see it.')
-    return redirect('dashboard')
+    logger.info('Medicine photo saved for inventory %s: %s', item.pk, item.photo.name)
+    return _photo_result(request, item, True, f'Photo saved for {item.medicine.name}. Patients can now see it.')
+
+
+def _photo_result(request, item, ok, text):
+    """Show the outcome at the top of the dashboard and next to the medicine it was for."""
+    (messages.success if ok else messages.error)(request, text)
+    request.session['photo_msg'] = {'pk': item.pk, 'ok': ok, 'text': text}
+    return redirect(f"{reverse('dashboard')}#stock-{item.pk}")
 
 
 def _delete_stored_file(storage, name):

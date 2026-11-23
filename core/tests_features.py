@@ -432,6 +432,25 @@ class MedicinePhotoTests(FeatureBase):
         self.inventory.refresh_from_db()
         self.assertTrue(self.inventory.photo.name.endswith('.jpg'))
 
+    def test_windows_jfif_and_gif_are_accepted_by_content(self):
+        self.upload(SimpleUploadedFile('box.jfif', b'\xff\xd8\xff\xe0' + b'\x00' * 32, content_type='image/jpeg'))
+        self.inventory.refresh_from_db()
+        self.assertTrue(self.inventory.photo.name.endswith('.jpg'))
+        self.upload(SimpleUploadedFile('box.gif', b'GIF89a' + b'\x00' * 32, content_type='image/gif'))
+        self.inventory.refresh_from_db()
+        self.assertTrue(self.inventory.photo.name.endswith('.gif'))
+
+    def test_result_is_shown_next_to_the_medicine(self):
+        response = self.upload(SimpleUploadedFile('notes.txt', b'hello there, not a picture'))
+        self.assertTrue(response['Location'].endswith(f'#stock-{self.inventory.pk}'))
+        page = self.client.get(reverse('dashboard'))
+        self.assertContains(page, 'photo-status is-error')
+        self.assertContains(page, 'not a picture we can show')
+        self.upload(png('box.png'))
+        page = self.client.get(reverse('dashboard'))
+        self.assertContains(page, 'photo-status is-ok')
+        self.assertNotContains(self.client.get(reverse('dashboard')), 'photo-status')  # shown only once
+
     def test_fake_or_wrong_files_are_rejected(self):
         self.upload(SimpleUploadedFile('box.png', b'<html>not an image</html>', content_type='image/png'))
         self.upload(SimpleUploadedFile('box.pdf', b'%PDF-1.4 ' + b'\x00' * 32, content_type='application/pdf'))

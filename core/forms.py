@@ -62,22 +62,35 @@ def clean_prescription_file(f):
     return f
 
 
-PHOTO_TYPES = ('.jpg', '.jpeg', '.png', '.webp')
+def photo_kind(head):
+    """'jpg', 'png', 'webp' or 'gif' from the first bytes of a file, else ''."""
+    if head.startswith(b'\xff\xd8\xff'):
+        return 'jpg'
+    if head.startswith(b'\x89PNG'):
+        return 'png'
+    if head[:4] == b'RIFF' and head[8:12] == b'WEBP':
+        return 'webp'
+    if head[:6] in (b'GIF87a', b'GIF89a'):
+        return 'gif'
+    return ''
 
 
 def clean_medicine_photo(f):
-    """A photo of the medicine box: JPG, PNG or WebP up to 10 MB, checked by content, not only name."""
+    """A photo of the medicine box, up to 10 MB, checked by its content (not its name).
+
+    The browser normally converts any picture to a small JPG first; this check is the safety net.
+    Windows names (.jfif, .jpe, ...) are fine as long as the content is a real JPG/PNG/WebP/GIF.
+    """
     if not f:
         return f
     if f.size > 10 * 1024 * 1024:
-        raise forms.ValidationError('The photo is too large (maximum 10 MB).')
-    if not f.name.lower().endswith(PHOTO_TYPES):
-        raise forms.ValidationError('Upload the photo as a JPG, PNG or WebP image.')
+        raise forms.ValidationError('The photo is too large (maximum 10 MB). Please choose a smaller picture.')
     head = f.read(12)
     f.seek(0)
-    if not (head.startswith(b'\xff\xd8\xff') or head.startswith(b'\x89PNG')
-            or (head[:4] == b'RIFF' and head[8:12] == b'WEBP')):
-        raise forms.ValidationError('This file does not look like a photo.')
+    kind = photo_kind(head)
+    if not kind:
+        raise forms.ValidationError('This file is not a picture we can show. Please choose a JPG, PNG, WebP or GIF picture.')
+    f.name = f'photo.{kind}'  # store with the extension that matches the real content
     return f
 
 

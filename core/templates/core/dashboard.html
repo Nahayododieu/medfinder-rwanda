@@ -130,15 +130,16 @@
             <thead><tr><th>Medicine</th><th>Quantity</th><th>Price (RWF)</th><th>Expiry</th><th>Updated</th><th></th></tr></thead>
             <tbody>
             {% for item in items %}
-            <tr>
+            <tr id="stock-{{ item.pk }}">
               <td data-label="Medicine"><span>{{ item.medicine.name }}{% if item.quantity == 0 %} <span class="badge badge-red">Out</span>{% elif item.is_low %} <span class="badge badge-amber">Low</span>{% endif %}{% if item.expiry_state == 'expired' %} <span class="badge badge-red">Expired</span>{% elif item.expiry_state == 'soon' %} <span class="badge badge-amber">Expires soon</span>{% endif %}</span>
                 <div class="stock-photo">
                   {% if item.photo %}<a class="med-photo" href="{{ item.photo_url }}" data-caption="{{ item.medicine.name }} · {{ pharmacy.name }}"><img src="{{ item.photo_thumb_url }}" alt="Photo of {{ item.medicine.name }}" width="44" height="44" loading="lazy"></a>{% endif %}
                   <form method="post" action="{% url 'stock_photo' item.pk %}" enctype="multipart/form-data" class="photo-form">{% csrf_token %}
-                    <label class="btn btn-sm btn-ghost photo-pick">{% if item.photo %}Change{% else %}+ Photo{% endif %}<input type="file" name="photo" accept="image/jpeg,image/png,image/webp" class="sr-only" data-autosubmit aria-label="Photo of {{ item.medicine.name }}"></label>
+                    <label class="btn btn-sm btn-ghost photo-pick">{% if item.photo %}Change{% else %}+ Photo{% endif %}<input type="file" name="photo" accept="image/*" class="sr-only" data-autosubmit aria-label="Photo of {{ item.medicine.name }}"></label>
                   </form>
                   {% if item.photo %}<form method="post" action="{% url 'stock_photo' item.pk %}" class="photo-form confirm-form" data-confirm="Remove the photo of {{ item.medicine.name }}?">{% csrf_token %}<input type="hidden" name="remove" value="1"><button class="btn btn-sm btn-ghost" aria-label="Remove the photo of {{ item.medicine.name }}" title="Remove photo">✕</button></form>{% endif %}
                 </div>
+                {% if photo_msg and photo_msg.pk == item.pk %}<p class="photo-status {% if photo_msg.ok %}is-ok{% else %}is-error{% endif %}" role="status">{{ photo_msg.text }}</p>{% endif %}
               </td>
               <td data-label="Quantity"><input form="upd-{{ item.pk }}" type="number" name="quantity" min="0" value="{{ item.quantity }}" aria-label="Quantity for {{ item.medicine.name }}"></td>
               <td data-label="Price (RWF)"><input form="upd-{{ item.pk }}" type="number" name="price" min="0" step="any" value="{{ item.price|floatformat:0 }}" aria-label="Price for {{ item.medicine.name }}"></td>
