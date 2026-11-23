@@ -14,10 +14,11 @@ class SecurityHeadersMiddleware:
 
 
 class WelcomeMiddleware:
-    """Send a person's first visit to the public pages through the welcome page (language choice).
+    """Show the welcome page (what MedFinder does + language choice) at the start of every visit.
 
-    Never for search engines, link previews (WhatsApp, Facebook...), uptime monitors, scripts,
-    logged-in users, pharmacy/admin pages, SMS reservation links, payment callbacks or APIs.
+    Once per visit: after Continue, a browser-session cookie lets the visitor browse freely until
+    the browser is closed. Never for search engines, link previews (WhatsApp, Facebook...), uptime
+    monitors, scripts, pharmacy/admin pages, SMS reservation links, payment callbacks or APIs.
     """
     PUBLIC_PREFIXES = ('/medicines/', '/find-pharmacy/', '/help/', '/about/', '/contact/', '/pharmacies/',
                        '/privacy/', '/terms/')
@@ -49,7 +50,4 @@ class WelcomeMiddleware:
         if 'text/html' not in request.headers.get('Accept', ''):
             return False
         agent = request.headers.get('User-Agent', '').lower()
-        if 'mozilla' not in agent or any(word in agent for word in self.NOT_A_PERSON):
-            return False
-        user = getattr(request, 'user', None)
-        return not (user and user.is_authenticated)
+        return 'mozilla' in agent and not any(word in agent for word in self.NOT_A_PERSON)

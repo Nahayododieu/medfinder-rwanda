@@ -253,7 +253,9 @@ def medicine_photo_file(request, path):
     return response
 
 
-WELCOME_COOKIE = 'mf_welcome'
+# Set when the visitor presses Continue. A browser-session cookie: the welcome page shows again
+# on the next visit (after the browser is closed), but not on every click during a visit.
+WELCOME_COOKIE = 'mf_visit'
 
 
 def _welcome_next(request, value):
@@ -284,8 +286,7 @@ def welcome(request):
         if lang in WELCOME_STRINGS:
             request.session['lang'] = lang
         response = redirect(_welcome_next(request, request.POST.get('next', '')))
-        response.set_cookie(WELCOME_COOKIE, '1', max_age=365 * 24 * 3600, samesite='Lax',
-                            secure=request.is_secure(), httponly=True)
+        response.set_cookie(WELCOME_COOKIE, '1', samesite='Lax', secure=request.is_secure(), httponly=True)
         return response
     chosen = _guess_language(request)
     return render(request, 'core/welcome.html', {

@@ -552,11 +552,22 @@ class WelcomePageTests(BaseTestCase):
                       'curl/8.4.0', ''):
             self.assertEqual(self.visit(reverse('search'), agent=agent).status_code, 200, agent)
 
-    def test_never_for_pharmacy_pages_sms_links_or_logged_in_users(self):
+    def test_never_for_pharmacy_pages_or_sms_links(self):
         for path in (reverse('login'), reverse('track'), reverse('healthz'), reverse('register')):
             self.assertNotEqual(self.visit(path).get('Location', '').split('?')[0], reverse('welcome'), path)
         self.client.force_login(self.owner)
-        self.assertEqual(self.visit(reverse('search')).status_code, 200)
+        self.assertEqual(self.visit(reverse('dashboard')).status_code, 200)
+
+    def test_shown_again_on_every_new_visit(self):
+        from .views_browse import WELCOME_COOKIE
+        done = self.client.post(reverse('welcome'), {'lang': 'fr', 'next': '/'})
+        cookie = done.cookies[WELCOME_COOKIE]
+        self.assertEqual(cookie['max-age'], '')  # browser-session cookie: gone when the browser closes
+        self.assertEqual(self.visit(reverse('help')).status_code, 200)  # same visit: no interruption
+        self.client.cookies.pop(WELCOME_COOKIE)  # browser closed, new visit
+        again = self.visit(reverse('search'))
+        self.assertTrue(again['Location'].startswith(reverse('welcome')))
+        self.assertContains(self.visit(again['Location']), 'value="fr" checked')  # language remembered
 
     def test_choosing_language_from_menu_skips_welcome(self):
         self.client.get(reverse('set_language', args=['fr']))

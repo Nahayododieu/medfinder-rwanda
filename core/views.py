@@ -316,9 +316,9 @@ def set_language(request, lang):
     if not url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}):
         target = reverse('search')
     response = redirect(target)
-    # Someone who picks a language from the menu does not need the welcome page any more.
-    response.set_cookie('mf_welcome', '1', max_age=365 * 24 * 3600, samesite='Lax',
-                        secure=request.is_secure(), httponly=True)
+    # Someone who picks a language from the menu does not need the welcome page again this visit.
+    from .views_browse import WELCOME_COOKIE
+    response.set_cookie(WELCOME_COOKIE, '1', samesite='Lax', secure=request.is_secure(), httponly=True)
     return response
 
 
