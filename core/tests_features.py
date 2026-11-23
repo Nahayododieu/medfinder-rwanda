@@ -1,4 +1,4 @@
-"""Tests for the patient features: basket orders, delivery, prescriptions, My reservations, sharing, yellow mode."""
+"""Tests for the patient features: basket orders, delivery, prescriptions, My reservations, sharing, green theme."""
 import re
 import shutil
 import tempfile
@@ -372,9 +372,9 @@ class MedicineReferencePriceTests(BaseTestCase):
         with self.assertRaises(ValidationError):
             med.full_clean()
 
-    def test_header_starts_in_yellow_mode(self):
+    def test_header_starts_in_green_theme(self):
         response = self.client.get('/')
-        self.assertContains(response, 'data-theme="yellow"')
+        self.assertContains(response, 'data-theme="green"')
 
 
 class MedicineCatalogueCommandTests(BaseTestCase):

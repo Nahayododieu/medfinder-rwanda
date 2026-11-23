@@ -1,14 +1,14 @@
 {% load static %}<!DOCTYPE html>
-<html lang="{{ chosen }}" data-theme="yellow">
+<html lang="{{ chosen }}" data-theme="green">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#ffd43b">
+  <meta name="theme-color" content="#1b7f4b">
   <meta name="robots" content="noindex">
   <title>{{ W.welcome_to }} MedFinder Rwanda</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23000000'/%3E%3Cpath d='M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4Z' fill='%23c0c0c0'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231b7f4b'/%3E%3Cpath d='M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4Z' fill='%23f5f8f6'/%3E%3C/svg%3E">
   <link rel="manifest" href="{% url 'manifest' %}">
-  <script>try{var t=sessionStorage.getItem('medfinder-theme-v3');document.documentElement.setAttribute('data-theme',t==='light'?'light':'yellow');}catch(e){}</script>
+  <script>try{var t=sessionStorage.getItem('medfinder-theme-v4');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'green');}catch(e){}</script>
   <link rel="stylesheet" href="{% static 'core/css/site.css' %}">
 </head>
 <body class="welcome-body">
@@ -24,14 +24,14 @@
         <ellipse class="wa-paper" cx="170" cy="112" rx="160" ry="92"/>
         <!-- map pin: "near you" -->
         <g transform="translate(272 18)">
-          <path class="wa-ink" d="M24 0C10.7 0 0 10.4 0 23.3 0 40.8 24 62 24 62s24-21.2 24-38.7C48 10.4 37.3 0 24 0Z"/>
+          <path class="wa-brand" d="M24 0C10.7 0 0 10.4 0 23.3 0 40.8 24 62 24 62s24-21.2 24-38.7C48 10.4 37.3 0 24 0Z"/>
           <path class="wa-accent" d="M20.5 11h7v8.8h8.8v7h-8.8v8.7h-7v-8.7h-8.8v-7h8.8V11Z"/>
         </g>
         <!-- pill bottle -->
         <rect class="wa-accent wa-stroke" x="46" y="38" width="72" height="26" rx="7"/>
-        <rect class="wa-ink" x="40" y="60" width="84" height="122" rx="16"/>
+        <rect class="wa-brand" x="40" y="60" width="84" height="122" rx="16"/>
         <rect class="wa-paper" x="52" y="92" width="60" height="54" rx="8"/>
-        <path class="wa-ink" d="M77 101h10v12h12v10H87v12H77v-12H65v-10h12v-12Z"/>
+        <path class="wa-brand" d="M77 101h10v12h12v10H87v12H77v-12H65v-10h12v-12Z"/>
         <!-- blister pack -->
         <g transform="rotate(-8 222 112)">
           <rect class="wa-soft wa-stroke" x="150" y="66" width="140" height="92" rx="14"/>

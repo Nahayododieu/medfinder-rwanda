@@ -295,8 +295,8 @@ def manifest(request):
         'start_url': '/?source=pwa',
         'scope': '/',
         'display': 'standalone',
-        'background_color': '#a8a8a8',
-        'theme_color': '#000000',
+        'background_color': '#e9f0eb',
+        'theme_color': '#1b7f4b',
         'icons': [
             {'src': '/static/core/icons/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
             {'src': '/static/core/icons/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
