@@ -690,3 +690,35 @@ class RegistrationFeedbackTests(BaseTestCase):
         pharmacy = Pharmacy.objects.get(license_no='NEW-001')
         self.assertFalse(pharmacy.verified)
         self.assertTrue(pharmacy.license_document.name.startswith('licenses/'))
+
+
+class HiddenAdminTests(BaseTestCase):
+    """The admin panel is not advertised and is protected against password guessing."""
+
+    def test_robots_txt_does_not_reveal_private_areas(self):
+        robots = self.client.get(reverse('robots_txt')).content.decode()
+        for private in ('admin', 'analytics', 'tools', 'dashboard', 'mf-control'):
+            self.assertNotIn(private, robots)
+
+    def test_private_areas_tell_search_engines_not_to_index(self):
+        for url in (reverse('admin:login'), reverse('dashboard'), reverse('analytics')):
+            self.assertIn('noindex', self.client.get(url).get('X-Robots-Tag', ''), url)
+        self.assertNotIn('X-Robots-Tag', self.client.get(reverse('search')))
+
+    def test_public_admin_address_is_closed_when_a_secret_one_is_set(self):
+        from django.conf import settings
+        if settings.ADMIN_URL == 'admin/':
+            self.skipTest('DJANGO_ADMIN_URL is not set in this environment')
+        self.assertEqual(self.client.get('/admin/').status_code, 404)
+        self.assertEqual(reverse('admin:index'), '/' + settings.ADMIN_URL)
+
+    def test_admin_login_blocks_password_guessing(self):
+        from django.conf import settings
+        limit = settings.RATE_LIMIT_ADMIN_LOGIN[0]
+        codes = [self.client.post(reverse('admin:login'), {'username': 'x', 'password': 'wrong'}).status_code
+                 for _ in range(limit + 2)]
+        self.assertEqual(codes[-1], 429)
+        self.assertNotIn(429, codes[:limit])
+
+    def test_public_menu_has_no_admin_link(self):
+        self.assertNotContains(self.client.get(reverse('search')), reverse('admin:index'))

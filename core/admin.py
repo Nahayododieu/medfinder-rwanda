@@ -355,3 +355,9 @@ class StockAlertAdmin(admin.ModelAdmin):
     list_filter = ('notified_at', 'district')
     search_fields = ('phone', 'medicine__name')
     raw_id_fields = ('medicine',)
+
+
+# Block password guessing on the admin login: a few tries per IP, then a pause.
+from .ratelimit import ratelimit as _ratelimit  # noqa: E402
+
+admin.site.login = _ratelimit('admin-login', settings.RATE_LIMIT_ADMIN_LOGIN)(admin.site.login)

@@ -538,7 +538,9 @@ class SiteTests(TestCase):
 
     def test_healthz_and_robots(self):
         self.assertEqual(self.client.get(reverse('healthz')).json(), {'status': 'ok'})
-        self.assertContains(self.client.get('/robots.txt'), 'Disallow: /dashboard/')
+        robots = self.client.get('/robots.txt')
+        self.assertContains(robots, 'Sitemap:')
+        self.assertNotContains(robots, '/dashboard/')  # private areas are never advertised
 
     def test_password_reset_sends_email(self):
         from django.core import mail

@@ -10,7 +10,16 @@ class SecurityHeadersMiddleware:
         response.setdefault('Permissions-Policy',
                             'geolocation=(self), camera=(), microphone=(), payment=(), usb=()')
         response.setdefault('X-Permitted-Cross-Domain-Policies', 'none')
+        if request.path.startswith(self.private_prefixes()):
+            # Private areas: never shown in search engines and never stored by shared caches.
+            response['X-Robots-Tag'] = 'noindex, nofollow, noarchive'
+            response.setdefault('Cache-Control', 'private, no-store')
         return response
+
+    @staticmethod
+    def private_prefixes():
+        from django.conf import settings
+        return ('/' + settings.ADMIN_URL, '/dashboard/', '/analytics/', '/tools/', '/admin-files/')
 
 
 class WelcomeMiddleware:

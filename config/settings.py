@@ -300,6 +300,13 @@ PLATFORM_COMMISSION_RATE = float(os.getenv('PLATFORM_COMMISSION_RATE', '0.03')) 
 
 # Rate limits: (max requests, window in seconds) per client IP
 RATE_LIMIT_LOGIN = (int(os.getenv('RATE_LIMIT_LOGIN', '5')), 300)
+
+# Admin panel address. Keep it secret: set DJANGO_ADMIN_URL on the host (e.g. 'mf-control-x7Kq2/').
+# The public /admin/ address then simply does not exist. Without the setting it stays at admin/.
+ADMIN_URL = os.getenv('DJANGO_ADMIN_URL', '').strip().strip('/') or 'admin'
+ADMIN_URL = ADMIN_URL + '/'
+# Wrong passwords allowed on the admin login before a pause (per IP).
+RATE_LIMIT_ADMIN_LOGIN = (int(os.getenv('RATE_LIMIT_ADMIN_LOGIN', '5')), 900)
 RATE_LIMIT_RESERVE = (int(os.getenv('RATE_LIMIT_RESERVE', '10')), 600)
 RATE_LIMIT_REGISTER = (int(os.getenv('RATE_LIMIT_REGISTER', '10')), 3600)
 

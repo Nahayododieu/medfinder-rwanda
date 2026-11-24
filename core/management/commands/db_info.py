@@ -21,6 +21,11 @@ class Command(BaseCommand):
             self.stdout.write(f'DATABASE CHECK: using temporary SQLite. {why}. Data will be lost on restart!')
         else:
             self.stdout.write(f"DATABASE CHECK: using {engine} at {db['HOST']} / {db['NAME']}")
+        if settings.ADMIN_URL == 'admin/':
+            self.stdout.write('ADMIN CHECK: the admin panel is at the public /admin/ address. '
+                              'Set DJANGO_ADMIN_URL to a secret path to hide it.')
+        else:
+            self.stdout.write('ADMIN CHECK: the admin panel is at a secret address (DJANGO_ADMIN_URL); /admin/ is closed.')
         backend = settings.STORAGES['default']['BACKEND']
         if backend.endswith('CloudinaryStorage'):
             cloud = os.environ.get('CLOUDINARY_URL', '').rsplit('@', 1)[-1]

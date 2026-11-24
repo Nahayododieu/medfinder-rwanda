@@ -982,8 +982,10 @@ def healthz(request):
 
 
 def robots_txt(request):
-    lines = ['User-agent: *', 'Disallow: /dashboard/', 'Disallow: /admin/', 'Disallow: /analytics/', 'Disallow: /welcome/',
-             'Disallow: /tools/', 'Disallow: /reservation/', 'Allow: /',
+    # Private areas (admin, dashboards, staff tools) are NOT listed here: listing them would tell
+    # everyone where they are. They send an X-Robots-Tag: noindex header instead (see middleware).
+    lines = ['User-agent: *', 'Disallow: /welcome/',
+             'Disallow: /reservation/', 'Allow: /',
              'Sitemap: ' + request.build_absolute_uri(reverse('sitemap'))]
     return HttpResponse('\n'.join(lines) + '\n', content_type='text/plain')
 
