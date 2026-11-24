@@ -27,7 +27,7 @@
   <p class="result-meta">
     {% if item.pharmacy.hours_display %}<span>{{ T.hours }}: {{ item.pharmacy.hours_display }}</span>{% endif %}
     {% if item.pharmacy.insurer_labels %}<span>{{ T.insurance_label }}: {{ item.pharmacy.insurer_labels|join:", " }}</span>{% endif %}
-    <span>{{ T.updated }} {{ item.updated_at|timesince }} {{ T.ago }}</span>
+    <span>{{ T.updated }} {% since item.updated_at %} {{ T.ago }}</span>
   </p>
   <div class="action-row">
     <a class="btn btn-ghost btn-sm" href="tel:{{ item.pharmacy.phone }}" aria-label="{{ T.call }} {{ item.pharmacy.name }}">

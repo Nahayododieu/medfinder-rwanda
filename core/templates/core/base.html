@@ -30,10 +30,10 @@
         </span>
         <span><span class="brand-name">MedFinder <span>Rwanda</span></span><span class="brand-caption">{{ T.brand_caption }}</span></span>
       </a>
-      <button type="button" class="nav-toggle" id="navToggle" aria-controls="mainNav" aria-expanded="false" aria-label="Open menu">
+      <button type="button" class="nav-toggle" id="navToggle" aria-controls="mainNav" aria-expanded="false" aria-label="{% t "Open menu" %}">
         <span class="nav-toggle-inner" aria-hidden="true"><span class="bar-line"></span><span class="bar-line"></span><span class="bar-line"></span></span>
       </button>
-      <nav class="nav-links" id="mainNav" aria-label="Main navigation">
+      <nav class="nav-links" id="mainNav" aria-label="{% t "Main navigation" %}">
         {% if user.is_authenticated %}
           {% if user.pharmacy or user.pharmacy_staff %}<a href="{% url 'dashboard' %}">{{ T.nav_dashboard }}</a>{% endif %}
           {% if user.is_staff %}
@@ -115,7 +115,7 @@
     {% block messages %}
     {% if messages %}
     <div class="container message-list" aria-live="polite">
-      {% for m in messages %}<div class="message {{ m.tags }}" role="status">{{ m }}</div>{% endfor %}
+      {% for m in messages %}<div class="message {{ m.tags }}" role="status">{% t m %}</div>{% endfor %}
     </div>
     {% endif %}
     {% endblock %}

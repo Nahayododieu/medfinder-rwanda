@@ -1,0 +1,53 @@
+<div class="narrow page">
+  <div class="page-head"><div><span class="eyebrow">Mis à jour en {% now "m/Y" %}</span><h1>Conditions d’utilisation</h1>
+    <p>Ces conditions s’appliquent à toute personne qui utilise {{ biz.name }} : patients, pharmacies et partenaires. En utilisant le service, vous les acceptez.</p>
+    <p class="small">Ceci est une traduction. En cas de doute, la version anglaise fait foi.</p></div></div>
+  <div class="card prose">
+    <h2>1. Qui sommes-nous</h2>
+    <p>{{ biz.name }}{% if biz.owner %}, exploitée par {{ biz.owner }}{% endif %}{% if biz.rdb %} (code d’entreprise RDB {{ biz.rdb }}){% endif %}, est un service en ligne qui indique quelles pharmacies du Rwanda ont un médicament en stock et permet aux patients de le réserver pour le retirer. Contact : {{ biz.phone }} · {{ biz.email }}.</p>
+
+    <h2>2. Ce qu’est le service, et ce qu’il n’est pas</h2>
+    <ul>
+      <li>{{ biz.name }} est un service d’information et de réservation. Nous ne vendons, ne prescrivons, ne délivrons ni ne livrons <strong>aucun</strong> médicament, et nous ne donnons pas de conseils médicaux.</li>
+      <li>Chaque pharmacie vend ses propres médicaments et est responsable de son stock, de ses prix et de ses conseils.</li>
+      <li>Les médicaments sur ordonnance peuvent être réservés, mais le pharmacien doit voir une ordonnance valide avant de les remettre.</li>
+    </ul>
+
+    <h2>3. Pour les patients</h2>
+    <ul>
+      <li>La recherche et la réservation sont gratuites pour les patients.</li>
+      <li>Une réservation non payée est conservée {{ hold_hours }} heures, puis libérée automatiquement. Merci de l’annuler si vous n’en avez plus besoin.</li>
+      <li>Le stock et les prix sont publiés par les pharmacies et peuvent changer. Si une pharmacie ne peut pas honorer votre réservation, celle-ci est annulée et tout paiement est remboursé.</li>
+      <li>Les paiements MTN Mobile Money servent à régler le médicament dans la pharmacie choisie. Les remboursements des réservations payées annulées sont versés au numéro qui a payé.</li>
+      <li>Ne faites pas de réservations que vous n’avez pas l’intention de retirer. Nous pouvons bloquer les numéros qui abusent du service de façon répétée.</li>
+    </ul>
+
+    <h2>4. Pour les pharmacies</h2>
+    <ul>
+      <li>Seules les pharmacies titulaires d’une licence Rwanda FDA valide peuvent s’inscrire. Nous vérifions la licence avant qu’une pharmacie soit visible des patients, et pouvons retirer une pharmacie dont la licence n’est pas valide.</li>
+      <li>Les pharmacies doivent tenir leur stock et leurs prix à jour, honorer les réservations au prix publié et respecter les règles de Rwanda FDA, y compris pour les médicaments sur ordonnance.</li>
+      <li>Les pharmacies gardent secrets leurs identifiants et sont responsables des actions réalisées depuis leur compte.</li>
+      <li>Les numéros de téléphone des patients ne peuvent servir qu’à traiter la réservation concernée, jamais à des fins publicitaires.</li>
+    </ul>
+
+    <h2>5. Tarifs</h2>
+    <ul>
+      <li>Les nouvelles pharmacies bénéficient d’un essai gratuit de {{ biz.trial_days }} jours, qui commence le jour où nous vérifions la pharmacie. Après l’essai, la présence sur le service coûte {{ biz.price }} RWF par période de 30 jours, sauf accord écrit différent. Rien n’est jamais prélevé automatiquement : vous payez par MTN Mobile Money depuis votre tableau de bord, ou en espèces ou par virement selon un arrangement avec nous.</li>
+      <li>Nous envoyons des rappels par SMS avant la fin de votre essai ou de votre période payée. Sans renouvellement, votre pharmacie reste visible {{ grace_days }} jours de plus{% if hide_unpaid %}, puis elle est masquée de la recherche des patients jusqu’au paiement{% endif %}. Votre compte, votre stock et votre historique sont conservés.</li>
+      <li>Sur les réservations payées en ligne par mobile money, {{ biz.name }} conserve une commission de service de {{ biz.commission_pct|floatformat:"-1" }} % et reverse le reste à la pharmacie. Les réservations payées au comptoir ne sont soumises à aucune commission.</li>
+      <li>Nous annonçons tout changement de prix au moins 30 jours à l’avance.</li>
+    </ul>
+
+    <h2>6. Données</h2>
+    <p>Nous traitons les données personnelles comme décrit dans notre <a class="link" href="{% url 'privacy' %}">politique de confidentialité</a>, conformément à la loi rwandaise relative à la protection des données à caractère personnel et de la vie privée. Des statistiques de demande anonymes et agrégées (par exemple, les médicaments souvent introuvables dans un district) peuvent être partagées avec des fournisseurs et partenaires de santé ou leur être vendues ; elles ne contiennent jamais de numéros de téléphone de patients ni de ventes d’une pharmacie identifiée sans son accord.</p>
+
+    <h2>7. Disponibilité et responsabilité</h2>
+    <p>Nous faisons en sorte que le service soit disponible et exact, mais nous ne pouvons pas garantir qu’il soit ininterrompu ni que chaque information soit exacte à tout moment. Dans la mesure permise par la loi, {{ biz.name }} n’est pas responsable des pertes causées par un stock ou des prix inexacts publiés par une pharmacie, par le non-respect d’une réservation par une pharmacie, ou par des pannes des réseaux mobiles, des SMS ou des prestataires de paiement.</p>
+
+    <h2>8. Suspension et résiliation</h2>
+    <p>Vous pouvez cesser d’utiliser le service à tout moment ; les pharmacies peuvent nous demander de fermer leur compte. Nous pouvons suspendre les comptes qui enfreignent ces conditions ou la loi.</p>
+
+    <h2>9. Modifications et droit applicable</h2>
+    <p>Nous pouvons mettre à jour ces conditions et indiquerons la date de la dernière version sur cette page. Ces conditions sont régies par les lois de la République du Rwanda.</p>
+  </div>
+</div>

@@ -4,7 +4,7 @@
 {% block content %}
 <section class="page-hero">
   <div class="container">
-    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><a href="{% url 'medicine_list' %}">{{ T.nav_medicines }}</a>{% if medicine.category %}<span aria-hidden="true">/</span><a href="{% url 'medicine_list' %}?category={{ medicine.category|urlencode }}">{{ medicine.category }}</a>{% endif %}<span aria-hidden="true">/</span><span aria-current="page">{{ medicine.name }}</span></nav>
+    <nav class="breadcrumb" aria-label="{% t "Breadcrumb" %}"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><a href="{% url 'medicine_list' %}">{{ T.nav_medicines }}</a>{% if medicine.category %}<span aria-hidden="true">/</span><a href="{% url 'medicine_list' %}?category={{ medicine.category|urlencode }}">{{ medicine.category }}</a>{% endif %}<span aria-hidden="true">/</span><span aria-current="page">{{ medicine.name }}</span></nav>
     <h1>{{ medicine.name }}</h1>
     <div class="badge-row">
       {% if medicine.requires_prescription %}<span class="badge badge-amber">{{ T.rx_needed }}</span>{% else %}<span class="badge badge-green">{{ T.otc }}</span>{% endif %}
@@ -18,7 +18,7 @@
     {% if total %}
     <form method="get" action="{% url 'search' %}#results" class="inline-form compare-form">
       <input type="hidden" name="q" value="{{ medicine.name }}">
-      <label class="sr-only" for="cmp-district">District</label>
+      <label class="sr-only" for="cmp-district">{% t "District" %}</label>
       <select name="district" id="cmp-district"><option value="">{{ T.all_districts }}</option>
         {% for value, label in districts %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
       </select>

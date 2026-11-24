@@ -15,7 +15,7 @@
 
   <div class="card ticket">
     <p class="small">{{ T.show_code }}</p>
-    <div class="code" aria-label="Pickup code">{{ order.pickup_code }}</div>
+    <div class="code" aria-label="{% t "Pickup code" %}">{{ order.pickup_code }}</div>
     <p class="small">{{ T.order_no }}: <strong>#{{ order.pk }}</strong>{% if expires_at and unpaid_total %} · {{ T.hold_until }} <strong>{{ expires_at|date:"H:i" }}</strong>{% endif %}</p>
   </div>
 

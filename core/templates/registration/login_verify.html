@@ -1,13 +1,13 @@
 {% extends 'core/base.html' %}
-{% block title %}Enter your login code · {{ biz.name }}{% endblock %}
+{% block title %}{% t "Enter your login code" %} · {{ biz.name }}{% endblock %}
 {% block content %}
 <div class="narrow page" style="max-width:460px">
-  <div class="page-head"><div><h1>Enter your login code</h1><p>We sent a 6-digit code by SMS to your pharmacy's phone. It expires in 5 minutes.</p></div></div>
+  <div class="page-head"><div><h1>{% t "Enter your login code" %}</h1><p>{% t "We sent a 6-digit code by SMS to your pharmacy’s phone. It expires in 5 minutes." %}</p></div></div>
   <form method="post" class="card stack">
     {% csrf_token %}
     {% include 'core/_field.html' with f=form.code %}
-    <button class="btn btn-block" type="submit">Confirm and log in</button>
+    <button class="btn btn-block" type="submit">{% t "Confirm and log in" %}</button>
   </form>
-  <p class="small" style="margin-top:16px">No SMS? <a class="link" href="{% url 'login' %}">Log in again</a> to get a new code.</p>
+  <p class="small" style="margin-top:16px">{% t "No SMS?" %} <a class="link" href="{% url 'login' %}">{% t "Log in again" %}</a> {% t "to get a new code." %}</p>
 </div>
 {% endblock %}

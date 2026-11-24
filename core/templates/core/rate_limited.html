@@ -1,8 +1,8 @@
 {% extends 'core/base.html' %}
-{% block title %}Too many attempts · MedFinder Rwanda{% endblock %}
+{% block title %}{% t "Too many attempts" %} · MedFinder Rwanda{% endblock %}
 {% block content %}
 <div class="narrow page">
-  <div class="page-head"><div><h1>Too many attempts</h1></div></div>
-  <div class="card"><p style="margin:0">For security, please wait about {{ minutes }} minute{{ minutes|pluralize }} and try again.</p></div>
+  <div class="page-head"><div><h1>{% t "Too many attempts" %}</h1></div></div>
+  <div class="card"><p style="margin:0">{% t "For security, please wait about {n} minutes and try again." n=minutes %}</p></div>
 </div>
 {% endblock %}

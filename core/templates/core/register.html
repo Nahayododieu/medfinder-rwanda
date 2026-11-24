@@ -1,21 +1,21 @@
 {% extends 'core/base.html' %}
-{% block title %}Register your pharmacy · MedFinder Rwanda{% endblock %}
+{% block title %}{% t "Register your pharmacy" %} · MedFinder Rwanda{% endblock %}
 {% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">{% endblock %}
 {% block content %}
 <div class="container page" style="max-width:880px">
   <div class="page-head">
     <div>
-      <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Free to start</span>
-      <h1>Register your pharmacy</h1>
-      <p>Your pharmacy stays hidden from patients until an administrator verifies your Rwanda FDA license.</p>
+      <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {% t "Free to start" %}</span>
+      <h1>{% t "Register your pharmacy" %}</h1>
+      <p>{% t "Your pharmacy stays hidden from patients until an administrator verifies your Rwanda FDA license." %}</p>
     </div>
   </div>
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
-    {% if form.non_field_errors %}<p class="alert alert-red">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+    {% if form.non_field_errors %}<p class="alert alert-red">{% for e in form.non_field_errors %}{% t e %} {% endfor %}</p>{% endif %}
     <div class="card">
-      <h2>Account</h2>
-      <p class="small">You will use these to log in to your dashboard.</p>
+      <h2>{% t "Account" %}</h2>
+      <p class="small">{% t "You will use these to log in to your dashboard." %}</p>
       <div class="form-grid">
         {% include 'core/_field.html' with f=form.username %}
         {% include 'core/_field.html' with f=form.email %}
@@ -24,7 +24,7 @@
       </div>
     </div>
     <div class="card">
-      <h2>Pharmacy details</h2>
+      <h2>{% t "Pharmacy details" %}</h2>
       <div class="form-grid">
         {% include 'core/_field.html' with f=form.name %}
         {% include 'core/_field.html' with f=form.license_no %}
@@ -36,8 +36,8 @@
     </div>
     <div class="card">
       <div class="card-head">
-        <div><h2>Location on the map</h2><p class="small">Click the map to place your pin, or stand in the pharmacy and use your current location.</p></div>
-        <button type="button" class="btn btn-ghost btn-sm" id="geo">Use my current location</button>
+        <div><h2>{% t "Location on the map" %}</h2><p class="small">{% t "Click the map to place your pin, or stand in the pharmacy and use your current location." %}</p></div>
+        <button type="button" class="btn btn-ghost btn-sm" id="geo">{% t "Use my current location" %}</button>
       </div>
       <div id="pickmap" style="height:300px;border-radius:12px;border:1px solid var(--line);margin-bottom:12px"></div>
       <p class="small" id="geomsg" aria-live="polite"></p>
@@ -48,11 +48,11 @@
     </div>
     <div class="card">
       {% include 'core/_field.html' with f=form.agree %}
-      <p class="small">Read the <a class="link" href="{% url 'terms' %}" target="_blank">Terms of Service</a> (free {{ biz.trial_days }}-day trial, then {{ biz.price }} RWF/month) and the <a class="link" href="{% url 'privacy' %}" target="_blank">privacy notice</a>.</p>
-      <button type="submit" class="btn">Submit registration</button>
+      <p class="small">{% t "Read the" %} <a class="link" href="{% url 'terms' %}" target="_blank">{% t "Terms of Service" %}</a> {% t "(free {days}-day trial, then {price} RWF/month) and the" days=biz.trial_days price=biz.price %} <a class="link" href="{% url 'privacy' %}" target="_blank">{% t "privacy notice" %}</a>.</p>
+      <button type="submit" class="btn">{% t "Submit registration" %}</button>
     </div>
   </form>
-  <p class="small" style="margin-top:16px"><a class="link" href="{% url 'login' %}">Already registered? Log in</a></p>
+  <p class="small" style="margin-top:16px"><a class="link" href="{% url 'login' %}">{% t "Already registered? Log in" %}</a></p>
 </div>
 {% endblock %}
 {% block scripts %}
@@ -72,15 +72,15 @@
     if (marker) marker.setLatLng([lat, lng]); else marker = L.marker([lat, lng], { draggable: true }).addTo(map)
       .on('dragend', function (e) { var p = e.target.getLatLng(); place(p.lat, p.lng); });
     if (zoom) map.setView([lat, lng], zoom);
-    msg.textContent = 'Location set. Drag the pin to adjust.';
+    msg.textContent = "{% t "Location set. Drag the pin to adjust." as m1 %}{{ m1|escapejs }}";
   }
   if (latI.value && lngI.value) place(parseFloat(latI.value), parseFloat(lngI.value), 16);
   map.on('click', function (e) { place(e.latlng.lat, e.latlng.lng); });
   document.getElementById('geo').onclick = function () {
-    if (!navigator.geolocation) { msg.textContent = 'Location is not available in this browser.'; return; }
-    msg.textContent = 'Getting location…';
+    if (!navigator.geolocation) { msg.textContent = "{% t "Location is not available in this browser." as m2 %}{{ m2|escapejs }}"; return; }
+    msg.textContent = "{% t "Getting location…" as m3 %}{{ m3|escapejs }}";
     navigator.geolocation.getCurrentPosition(function (p) { place(p.coords.latitude, p.coords.longitude, 17); },
-      function () { msg.textContent = 'Could not get location. Click the map instead.'; },
+      function () { msg.textContent = "{% t "Could not get location. Click the map instead." as m4 %}{{ m4|escapejs }}"; },
       { enableHighAccuracy: true, timeout: 15000 });
   };
 })();

@@ -589,3 +589,65 @@ class WelcomePageTests(BaseTestCase):
         for code, texts in WELCOME_STRINGS.items():
             self.assertEqual(set(texts), keys, code)
             self.assertTrue(all(v.strip() for v in texts.values()), code)
+
+
+class LanguageCoverageTests(BaseTestCase):
+    """Choosing Kinyarwanda or French changes the whole public site, not only some words."""
+
+    PAGES = {
+        'rw': [('about', 'Intego yacu'), ('contact', 'Vugana natwe'), ('login', 'Kwinjira kwa farumasi'),
+               ('register', 'Hitamo akarere'), ('privacy', 'Itangazo ryerekeye amakuru bwite'),
+               ('terms', 'Amabwiriza yo gukoresha serivisi'), ('for_pharmacies', 'Abarwayi benshi barakubona'),
+               ('offline', 'Nta interineti ufite'), ('password_reset', 'Wibagiwe ijambo ry’ibanga?')],
+        'fr': [('about', 'Notre mission'), ('contact', 'Parlez-nous'), ('login', 'Espace pharmacie'),
+               ('register', 'Choisissez le district'), ('privacy', 'Politique de confidentialité'),
+               ('terms', 'Conditions d’utilisation'), ('for_pharmacies', 'Plus de patients vous trouvent'),
+               ('offline', 'Vous êtes hors ligne'), ('password_reset', 'Mot de passe oublié ?')],
+    }
+
+    def test_pages_are_translated(self):
+        for lang, pages in self.PAGES.items():
+            self.client.get(reverse('set_language', args=[lang]))
+            for name, text in pages:
+                response = self.client.get(reverse(name))
+                self.assertContains(response, text, msg_prefix=f'{lang} {name}')
+
+    def test_error_page_and_form_errors_are_translated(self):
+        self.client.get(reverse('set_language', args=['rw']))
+        self.assertContains(self.client.get('/no-such-page/'), 'Paji ntibonetse', status_code=404)
+        response = self.client.post(reverse('register'), {})
+        self.assertContains(response, 'Iki gice kigomba kuzuzwa.')  # "This field is required."
+        self.client.get(reverse('set_language', args=['fr']))
+        self.assertContains(self.client.post(reverse('register'), {}), 'Ce champ est obligatoire.')
+
+    def test_times_and_ussd_example_follow_the_language(self):
+        self.client.get(reverse('set_language', args=['rw']))
+        rw = self.client.get(reverse('search'), {'q': 'Panadol'})
+        self.assertContains(rw, 'Murakaza neza kuri MedFinder')
+        self.assertContains(rw, 'iminota')  # "minutes" in "Byavuguruwe iminota 0 ishize"
+        self.client.get(reverse('set_language', args=['fr']))
+        self.assertContains(self.client.get(reverse('search'), {'q': 'Panadol'}), 'minute')
+
+    def test_kinyarwanda_time_words(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        from .templatetags.mf_i18n import since_rw
+        now = timezone.now()
+        self.assertEqual(since_rw(now - timedelta(days=6, hours=3), now), 'iminsi 6, amasaha 3')
+        self.assertEqual(since_rw(now - timedelta(days=1, minutes=5), now), 'umunsi 1')
+        self.assertEqual(since_rw(now - timedelta(minutes=1), now), 'umunota 1')
+
+    def test_missing_translation_falls_back_to_english(self):
+        from .i18n_text import TEXT, translate
+        self.assertEqual(translate('Some brand new sentence', 'rw'), 'Some brand new sentence')
+        self.assertEqual(translate("We sent a 6-digit code by SMS to your pharmacy's phone. It expires in 5 minutes.", 'fr'),
+                         TEXT['fr']['We sent a 6-digit code by SMS to your pharmacy’s phone. It expires in 5 minutes.'])
+
+    def test_both_languages_translate_the_same_texts(self):
+        from .i18n_text import TEXT
+        self.assertEqual((set(TEXT['rw']) ^ set(TEXT['fr'])) - {
+            'New password', 'New password confirmation', 'Old password', 'This field is required.',
+            'Enter a valid email address.', 'The two password fields didn’t match.',
+            'Your old password was entered incorrectly. Please enter it again.',
+            'This password is too short. It must contain at least 8 characters.', 'This password is too common.',
+            'This password is entirely numeric.'}, set())  # Django already translates those into French

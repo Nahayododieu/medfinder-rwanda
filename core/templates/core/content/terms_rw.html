@@ -1,0 +1,53 @@
+<div class="narrow page">
+  <div class="page-head"><div><span class="eyebrow">Byavuguruwe {% now "m/Y" %}</span><h1>Amabwiriza yo gukoresha serivisi</h1>
+    <p>Aya mabwiriza areba umuntu wese ukoresha {{ biz.name }}: abarwayi, farumasi n’abafatanyabikorwa. Iyo ukoresheje serivisi, uba uyemeye.</p>
+    <p class="small">Iyi ni inyandiko yahinduwe mu Kinyarwanda. Niba hari aho itumvikana, inyandiko y’Icyongereza ni yo ifatwa nk’iy’ukuri.</p></div></div>
+  <div class="card prose">
+    <h2>1. Abo turi bo</h2>
+    <p>{{ biz.name }}{% if biz.owner %}, icungwa na {{ biz.owner }}{% endif %}{% if biz.rdb %} (kode ya sosiyete muri RDB: {{ biz.rdb }}){% endif %}, ni serivisi yo kuri interineti yerekana farumasi zo mu Rwanda zifite umuti mu bubiko, kandi ituma abarwayi bawubikisha bakazawufata. Aho mutubona: {{ biz.phone }} · {{ biz.email }}.</p>
+
+    <h2>2. Icyo serivisi ari cyo n’icyo itari cyo</h2>
+    <ul>
+      <li>{{ biz.name }} ni serivisi itanga amakuru kandi ifasha kubikisha imiti. <strong>Ntitugurisha</strong>, ntitwandika, ntidutanga cyangwa ngo tugeze imiti ku bantu, kandi ntidutanga inama z’ubuvuzi.</li>
+      <li>Buri farumasi igurisha imiti yayo kandi ishinzwe ububiko, ibiciro n’inama itanga.</li>
+      <li>Imiti isaba urupapuro rwa muganga irashobora kubikishwa, ariko umufarumasiye agomba kubanza kubona urupapuro rwa muganga rwemewe mbere yo kuyitanga.</li>
+    </ul>
+
+    <h2>3. Ku barwayi</h2>
+    <ul>
+      <li>Gushakisha no kubikisha ni ubuntu ku barwayi.</li>
+      <li>Umuti wabikishijwe utishyuwe ubikwa amasaha {{ hold_hours }}, hanyuma ukarekurwa ubwawo. Turakwinginze uhagarike niba utakiwukeneye.</li>
+      <li>Ububiko n’ibiciro bitangazwa na farumasi kandi bishobora guhinduka. Niba farumasi idashoboye kurangiza ibyo wabikishije, birahagarikwa kandi amafaranga yose yishyuwe agasubizwa.</li>
+      <li>Amafaranga yishyuwe kuri MTN Mobile Money ajya ku muti wo muri farumasi wahisemo. Amafaranga y’imiti yishyuwe yahagaritswe asubizwa kuri nimero yishyuye.</li>
+      <li>Ntukabikishe imiti udateganya gufata. Dushobora guhagarika nimero zikomeza gukoresha nabi serivisi.</li>
+    </ul>
+
+    <h2>4. Ku mafarumasi</h2>
+    <ul>
+      <li>Farumasi zifite uruhushya rwa Rwanda FDA rwemewe ni zo zonyine zishobora kwiyandikisha. Tugenzura uruhushya mbere y’uko farumasi yerekwa abarwayi, kandi dushobora gukuraho farumasi ifite uruhushya rutemewe.</li>
+      <li>Farumasi zigomba kugira ububiko n’ibiciro by’ukuri, kubahiriza ibyabikishijwe ku giciro cyatangajwe, no gukurikiza amabwiriza ya Rwanda FDA, harimo n’ay’imiti isaba urupapuro rwa muganga.</li>
+      <li>Farumasi zigomba kubika ibanga ry’amakuru yo kwinjira muri konti zazo, kandi zishinzwe ibikorerwa muri konti zazo.</li>
+      <li>Nimero za telefoni z’abarwayi zishobora gukoreshwa gusa mu gutanga umuti wabikishijwe, ntizigera zikoreshwa mu kwamamaza.</li>
+    </ul>
+
+    <h2>5. Ibiciro</h2>
+    <ul>
+      <li>Farumasi nshya zibona igerageza ry’ubuntu ry’iminsi {{ biz.trial_days }}, ritangira ku munsi twemeje farumasi. Nyuma y’igerageza, kugaragara kuri serivisi bigura {{ biz.price }} RWF ku minsi 30, keretse habaye ikindi cyumvikanyweho mu nyandiko. Nta mafaranga na rimwe akurwa ku buryo bwikora: wishyura kuri MTN Mobile Money uhereye ku mbonerahamwe yawe, cyangwa mu ntoki cyangwa kuri banki tubyumvikanyeho.</li>
+      <li>Twohereza ubutumwa bwa SMS bwibutsa mbere y’uko igerageza cyangwa igihe wishyuriye kirangira. Niba kitongerewe, farumasi yawe ikomeza kugaragara indi minsi {{ grace_days }}{% if hide_unpaid %}, hanyuma igakurwa mu ishakisha ry’abarwayi kugeza wishyuye{% endif %}. Konti yawe, ububiko n’amateka yawe birabikwa.</li>
+      <li>Ku miti yabikishijwe yishyuwe kuri mobile money kuri interineti, {{ biz.name }} igumana amafaranga ya serivisi angana na {{ biz.commission_pct|floatformat:"-1" }}%, asigaye agahabwa farumasi. Imiti yishyurirwa kuri konteri nta mafaranga ya serivisi yakwa.</li>
+      <li>Tumenyesha nibura iminsi 30 mbere y’uko igiciro icyo ari cyo cyose gihinduka.</li>
+    </ul>
+
+    <h2>6. Amakuru</h2>
+    <p>Dufata amakuru bwite nk’uko bisobanuwe mu <a class="link" href="{% url 'privacy' %}">itangazo ryerekeye amakuru bwite</a>, hakurikijwe itegeko ryo mu Rwanda rirengera amakuru bwite n’ubuzima bwite. Imibare rusange y’ibikenewe itagaragaza abantu (urugero, imiti ikunze kubura mu karere) ishobora gusangizwa cyangwa kugurishwa abatanga imiti n’abafatanyabikorwa mu buzima; ntijya igira nimero za telefoni z’abarwayi cyangwa ibyo farumasi igurisha byanditseho izina ryayo nta ruhushya.</p>
+
+    <h2>7. Kuboneka kwa serivisi n’uburyozwe</h2>
+    <p>Dukora uko dushoboye ngo serivisi iboneke kandi ibe ari ukuri, ariko ntitwakwemeza ko itazigera ihagarara cyangwa ko buri makuru ari ukuri igihe cyose. Mu rugero itegeko ryemera, {{ biz.name }} ntiryozwa ibihombo biturutse ku bubiko cyangwa ibiciro bitari ukuri byatangajwe na farumasi, ku kuba farumasi itubahirije ibyabikishijwe, cyangwa ku guhagarara kw’imiyoboro ya telefoni, SMS cyangwa abatanga serivisi zo kwishyura.</p>
+
+    <h2>8. Guhagarika no kurangiza</h2>
+    <p>Ushobora kureka gukoresha serivisi igihe icyo ari cyo cyose; farumasi zishobora kudusaba gufunga konti zazo. Dushobora guhagarika konti zirenga kuri aya mabwiriza cyangwa ku mategeko.</p>
+
+    <h2>9. Impinduka n’amategeko akurikizwa</h2>
+    <p>Dushobora kuvugurura aya mabwiriza kandi tuzerekana itariki y’inyandiko iheruka kuri iyi paji. Aya mabwiriza agengwa n’amategeko ya Repubulika y’u Rwanda.</p>
+  </div>
+</div>

@@ -20,7 +20,7 @@
           <input type="text" name="q" id="medicine-query" value="{{ query }}" placeholder="{{ T.search_placeholder }}" autocomplete="off" maxlength="100" list="medicine-suggestions" required>
           <datalist id="medicine-suggestions"></datalist>
         </div>
-        <label class="sr-only" for="district">District</label>
+        <label class="sr-only" for="district">{% t "District" %}</label>
         <select name="district" id="district" class="district-select">
           <option value="">{{ T.all_districts }}</option>
           {% for value, label in districts %}<option value="{{ value }}"{% if value == district %} selected{% endif %}>{{ label }}</option>{% endfor %}
@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <div class="quick-searches" aria-label="Popular medicine searches">
+    <div class="quick-searches" aria-label="{% t "Popular medicine searches" %}">
       <span class="quick-label">{{ T.try_search }}</span>
       <a href="{% url 'search' %}?q=Paracetamol#results">Paracetamol</a>
       <a href="{% url 'search' %}?q=Amoxicillin#results">Amoxicillin</a>
@@ -88,7 +88,7 @@
     {% endif %}
   </div>
 
-  <form method="get" action="{% url 'search' %}#results" class="filter-bar" aria-label="Filters">
+  <form method="get" action="{% url 'search' %}#results" class="filter-bar" aria-label="{% t "Filters" %}">
     <input type="hidden" name="q" value="{{ query }}">
     <input type="hidden" name="district" value="{{ district }}">
     {% if request.GET.lat %}<input type="hidden" name="lat" value="{{ request.GET.lat }}"><input type="hidden" name="lng" value="{{ request.GET.lng }}">{% endif %}
@@ -112,7 +112,7 @@
 
   {% if results %}
   <div class="results-grid">
-    <div id="map" role="region" aria-label="Map of pharmacies with this medicine"></div>
+    <div id="map" role="region" aria-label="{% t "Map of pharmacies with this medicine" %}"></div>
     <div class="result-list">
       {% for item in results %}{% if forloop.first and forloop.last %}{% include 'core/_result_card.html' with open_reserve=True %}{% else %}{% include 'core/_result_card.html' %}{% endif %}{% endfor %}
     </div>
@@ -155,7 +155,7 @@
 {% endif %}
 
 {% if stats %}
-<section class="stats-band" aria-label="MedFinder in numbers">
+<section class="stats-band" aria-label="{% t "MedFinder in numbers" %}">
   <div class="container stats-grid">
     <a class="stat" href="{% url 'pharmacy_list' %}"><span class="stat-value"><span data-count="{{ stats.pharmacies }}">{{ stats.pharmacies }}</span></span><span class="stat-label">{{ T.stat_pharmacies }}</span></a>
     <a class="stat" href="{% url 'medicine_list' %}?available=1"><span class="stat-value"><span data-count="{{ stats.medicines }}">{{ stats.medicines }}</span></span><span class="stat-label">{{ T.stat_medicines }}</span></a>
@@ -165,7 +165,7 @@
 </section>
 {% endif %}
 
-<section class="trust-strip" aria-label="Service highlights">
+<section class="trust-strip" aria-label="{% t "Service highlights" %}">
   <div class="container trust-items">
     <div class="trust-item"><span class="trust-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>{{ T.trust_1 }}</div>
     <div class="trust-item"><span class="trust-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>{{ T.trust_2 }}</div>
@@ -218,15 +218,11 @@
       <p>{{ T.faq_a5 }}</p>
       <span class="ussd-code">{{ ussd_code }}</span>
     </div>
-    <div class="phone-mock" aria-hidden="true">Welcome to MedFinder
-1. Search medicine
-2. Check my reservation
-3. Help
-4. Ikinyarwanda</div>
+    <div class="phone-mock" aria-hidden="true">{{ ussd_menu }}</div>
   </div>
 </section>
 
-<section class="pharmacy-cta" aria-label="Pharmacy partner access">
+<section class="pharmacy-cta" aria-label="{% t "Pharmacy partner access" %}">
   <div class="container">
     <div class="cta-panel">
       <div>
@@ -354,7 +350,7 @@
     bounds.push(point);
     L.marker(point).addTo(map)
       .bindPopup('<strong>' + esc(p.name) + '</strong><br>' + esc(p.medicine) + ': ' + esc(p.price) +
-                 ' RWF<br>' + esc(p.phone) + '<br><a href="#item-' + p.id + '">Reserve →</a> · <a href="' + p.url + '">Pharmacy</a>')
+                 ' RWF<br>' + esc(p.phone) + '<br><a href="#item-' + p.id + '">{% t "Reserve" as tr_reserve %}{{ tr_reserve|escapejs }} →</a> · <a href="' + p.url + '">{% t "Pharmacy" as tr_pharmacy %}{{ tr_pharmacy|escapejs }}</a>')
       .on('click', function () {
         document.querySelectorAll('.result-card.highlight').forEach(function (c) { c.classList.remove('highlight'); });
         var card = document.getElementById('item-' + p.id);

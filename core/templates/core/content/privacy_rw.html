@@ -1,0 +1,34 @@
+<div class="narrow page">
+  <div class="page-head"><div><span class="eyebrow">Byavuguruwe {% now "m/Y" %}</span><h1>Itangazo ryerekeye amakuru bwite</h1>
+    <p>Uko {{ biz.name }} ifata amakuru yawe, hakurikijwe itegeko ryo mu Rwanda rirengera amakuru bwite n’ubuzima bwite. Reba kandi <a class="link" href="{% url 'terms' %}">Amabwiriza yo gukoresha serivisi</a>.</p>
+    <p class="small">Iyi ni inyandiko yahinduwe mu Kinyarwanda. Niba hari aho itumvikana, inyandiko y’Icyongereza ni yo ifatwa nk’iy’ukuri.</p></div></div>
+  <div class="card prose">
+    <h2>Ushinzwe amakuru</h2>
+    <p>{{ biz.name }}{% if biz.owner %}, icungwa na {{ biz.owner }}{% endif %}{% if biz.rdb %} (kode ya sosiyete muri RDB: {{ biz.rdb }}){% endif %}, ni yo ishinzwe amakuru yawe. Twandikire ku byerekeye amakuru yawe kuri {{ biz.email }} cyangwa {{ biz.phone }}.</p>
+    <h2>Amakuru dukusanya</h2>
+    <ul>
+      <li><strong>Abarwayi:</strong> nimero ya telefoni wanditse gusa iyo ubikishije cyangwa wishyura, umuti n’ingano wabikishije. Ntitukubaza izina ryawe, indwara cyangwa indangamuntu.</li>
+      <li><strong>Ishakisha:</strong> izina ry’umuti washakishije, akarere, n’uko wabonetse cyangwa utabonetse. Ishakisha ribikwa <em>nta</em> nimero ya telefoni cyangwa aho uri bigaragaramo.</li>
+      <li><strong>Aho uri:</strong> niba ubyemeye, aho mushakisha yawe iri bikoreshwa gusa mu gutondeka farumasi zikwegereye muri iryo shakisha. Ntibibikwa.</li>
+      <li><strong>Farumasi:</strong> izina ry’ubucuruzi, nimero y’uruhushya, telefoni, aderesi n’aho iri ku ikarita, hamwe n’ububiko n’ibiciro zitangaza.</li>
+    </ul>
+    <h2>Impamvu tuyakoresha</h2>
+    <ul>
+      <li>Kukoherereza kode yawe n’amakuru ku miti wabikishije ukoresheje SMS.</li>
+      <li>Kwemerera farumasi kwemeza umuti wabikishije, kandi, niba ubihisemo, gukora kwishyura kuri MTN Mobile Money.</li>
+      <li>Gukora imibare itagaragaza abantu (urugero, imiti ikunze kubura mu karere) ifasha farumasi, abatanga imiti n’abategura iby’ubuzima kugabanya ibura ry’imiti.</li>
+    </ul>
+    <h2>Abashobora kuyabona</h2>
+    <p>Farumasi wabikishijeho ni yo yonyine ibona nimero yawe ya telefoni. Abayobozi bashobora kureba amakuru kugira ngo bagenzure farumasi kandi bakemure ibibazo. Imibare rusange itagaragaza abantu ishobora gusangizwa abafatanyabikorwa; ntijya igira nimero za telefoni.</p>
+    <h2>Abatanga serivisi</h2>
+    <p>SMS na USSD bitangwa binyuze kuri Africa’s Talking, kwishyura binyuze kuri MTN Mobile Money, naho amakarita akoresha OpenStreetMap. Aba batanga serivisi bahabwa gusa ibyo bakeneye kugira ngo batange serivisi yabo.</p>
+    <h2>Igihe tuyabika</h2>
+    <p>Amakuru ku miti yabikishijwe abikwa kugeza ku mezi 12 kubera igenzura no gukemura amakimbirane, hanyuma agasibwa cyangwa agakurwamo ibigaragaza abantu.</p>
+    <h2>Uburenganzira bwawe</h2>
+    <p>Ushobora gusaba kureba, gukosora cyangwa gusiba amakuru yawe, cyangwa kwisubiraho ku cyo wemeye, utwandikira kuri {{ biz.email }} cyangwa {{ biz.phone }}. Dusubiza mu minsi 30. Kwisubiraho ntibigira ingaruka ku miti yamaze gufatwa. Ushobora kandi kuregera urwego rushinzwe kurengera amakuru bwite mu Rwanda.</p>
+    <h2>Imiti n’impapuro za muganga</h2>
+    <p>MedFinder ntigurisha, ntiyandika cyangwa ngo igeze imiti ku bantu, kandi ntitanga inama z’ubuvuzi. Farumasi ni zo zishinzwe ukuri kw’ububiko n’ibiciro byazo, no kugenzura impapuro za muganga ku miti izisaba, hakurikijwe amabwiriza ya Rwanda FDA.</p>
+    <h2>Imiti yabikishijwe</h2>
+    <p>Imiti yabikishijwe itarishyurwa ibikwa amasaha {{ hold_hours }}, hanyuma ikarekurwa ubwayo. Imiti yishyuwe farumasi ikayihagarika, amafaranga asubizwa.</p>
+  </div>
+</div>

@@ -7,7 +7,7 @@
 {% block content %}
 <section class="page-hero">
   <div class="container">
-    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ T.nav_find_pharmacy }}</span></nav>
+    <nav class="breadcrumb" aria-label="{% t "Breadcrumb" %}"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ T.nav_find_pharmacy }}</span></nav>
     <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.pharmacies_eyebrow }}</span>
     <h1>{{ T.pharmacies_title }}</h1>
     <p>{{ T.pharmacies_copy }}</p>
@@ -18,7 +18,7 @@
   <form method="get" class="filter-bar" role="search" aria-label="{{ T.nav_find_pharmacy }}">
     <label class="filter-item grow"><span>{{ T.nav_find_pharmacy }}</span>
       <input type="search" name="q" value="{{ q }}" placeholder="{{ T.pharmacy_search_placeholder }}" maxlength="80"></label>
-    <label class="filter-item"><span>District</span>
+    <label class="filter-item"><span>{% t "District" %}</span>
       <select name="district"><option value="">{{ T.all_districts }}</option>
         {% for value, label in districts %}<option value="{{ value }}"{% if value == district %} selected{% endif %}>{{ label }}</option>{% endfor %}
       </select></label>

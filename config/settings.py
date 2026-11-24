@@ -94,6 +94,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.SecurityHeadersMiddleware',
+    'core.middleware.LanguageMiddleware',  # Django's own messages (form errors, dates) in French when chosen
     'core.middleware.WelcomeMiddleware',  # first visit: welcome page with the language choice
 ]
 
@@ -112,6 +113,7 @@ TEMPLATES = [
                 'core.i18n.language_context',
                 'core.views_patient.basket_context',
             ],
+            'builtins': ['core.templatetags.mf_i18n'],  # {% t "..." %} and {% since ... %} on every page
         },
     },
 ]

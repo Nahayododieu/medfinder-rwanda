@@ -37,7 +37,7 @@ from .channels import _match_medicine, handle_incoming_sms, ussd_response
 from .forms import (LoginCodeForm, MedicineRequestForm, MedicinePhotoForm, PaymentForm, PharmacyProfileForm,
                     PharmacyRegisterForm, ReservationForm, ReviewForm, StockForm, StockImportForm,
                     SubscriptionPayForm, TrackForm)
-from .i18n import STRINGS
+from .i18n import STRINGS, get_lang
 from .models import (INSURER_CHOICES, Inventory, Medicine, Payment, Pharmacy, Reservation, Review,
                      SearchLog, SmsLog, SubscriptionPayment, Testimonial)
 from .ratelimit import ratelimit
@@ -905,10 +905,17 @@ def pharmacy_profile(request):
     return render(request, 'core/profile.html', {'form': form, 'pharmacy': pharmacy})
 
 
+def _translate_register_form(form, request):
+    from .i18n_text import translate
+    from .utils import DISTRICT_CHOICES
+    form.fields['district'].choices = [('', translate('Choose district…', get_lang(request)))] + DISTRICT_CHOICES
+    return form
+
+
 @ratelimit('register', settings.RATE_LIMIT_REGISTER)
 def register(request):
     if request.method == 'POST':
-        form = PharmacyRegisterForm(request.POST, request.FILES)
+        form = _translate_register_form(PharmacyRegisterForm(request.POST, request.FILES), request)
         if form.is_valid():
             data = form.cleaned_data
             with transaction.atomic():
@@ -930,7 +937,7 @@ def register(request):
                                       'Your pharmacy appears in search once an administrator verifies your license.')
             return redirect('login')
     else:
-        form = PharmacyRegisterForm()
+        form = _translate_register_form(PharmacyRegisterForm(), request)
     return render(request, 'core/register.html', {'form': form})
 
 

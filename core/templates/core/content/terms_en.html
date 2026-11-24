@@ -1,0 +1,52 @@
+<div class="narrow page">
+  <div class="page-head"><div><span class="eyebrow">Last updated {% now "F Y" %}</span><h1>Terms of Service</h1>
+    <p>These terms apply to everyone who uses {{ biz.name }}: patients, pharmacies and partners. By using the service you accept them.</p></div></div>
+  <div class="card prose">
+    <h2>1. Who we are</h2>
+    <p>{{ biz.name }}{% if biz.owner %}, operated by {{ biz.owner }}{% endif %}{% if biz.rdb %} (RDB company code {{ biz.rdb }}){% endif %}, is an online service that shows which pharmacies in Rwanda have a medicine in stock and lets patients reserve it for pickup. Contact: {{ biz.phone }} · {{ biz.email }}.</p>
+
+    <h2>2. What the service is, and is not</h2>
+    <ul>
+      <li>{{ biz.name }} is an information and reservation service. We do <strong>not</strong> sell, prescribe, dispense or deliver medicines, and we do not give medical advice.</li>
+      <li>Each pharmacy sells its own medicines and is responsible for the stock, prices and advice it gives.</li>
+      <li>Prescription-only medicines may be reserved, but the pharmacist must see a valid prescription before handing them over.</li>
+    </ul>
+
+    <h2>3. For patients</h2>
+    <ul>
+      <li>Searching and reserving are free for patients.</li>
+      <li>An unpaid reservation is held for {{ hold_hours }} hours, then released automatically. Please cancel if you no longer need it.</li>
+      <li>Stock and prices are published by pharmacies and can change. If a pharmacy cannot complete your reservation, it is cancelled and any payment is refunded.</li>
+      <li>Payments made with MTN Mobile Money go towards the medicine at the pharmacy you chose. Refunds for cancelled paid reservations are returned to the number that paid.</li>
+      <li>Do not make reservations you do not intend to collect. We may block numbers that repeatedly abuse the service.</li>
+    </ul>
+
+    <h2>4. For pharmacies</h2>
+    <ul>
+      <li>Only pharmacies holding a valid Rwanda FDA license may register. We verify the license before a pharmacy is shown to patients, and may remove a pharmacy whose license is not valid.</li>
+      <li>Pharmacies must keep stock and prices accurate, honour reservations at the published price, and follow Rwanda FDA rules, including for prescription-only medicines.</li>
+      <li>Pharmacies keep their account credentials secret and are responsible for actions taken from their account.</li>
+      <li>Patient phone numbers may be used only to serve that reservation, never for marketing.</li>
+    </ul>
+
+    <h2>5. Fees</h2>
+    <ul>
+      <li>New pharmacies get a free trial of {{ biz.trial_days }} days, starting on the day we verify the pharmacy. After the trial, listing costs {{ biz.price }} RWF per 30 days unless agreed otherwise in writing. Nothing is ever charged automatically: you pay by MTN Mobile Money from your dashboard, or by cash or bank transfer arranged with us.</li>
+      <li>We send SMS reminders before your trial or paid period ends. If it is not renewed, your pharmacy stays visible for {{ grace_days }} more days{% if hide_unpaid %}, then it is hidden from patient search until payment is made{% endif %}. Your account, stock and history are kept.</li>
+      <li>On reservations paid online with mobile money, {{ biz.name }} keeps a service commission of {{ biz.commission_pct|floatformat:"-1" }}% and passes the rest to the pharmacy. Reservations paid at the counter carry no commission.</li>
+      <li>We give at least 30 days' notice of any price change.</li>
+    </ul>
+
+    <h2>6. Data</h2>
+    <p>We handle personal data as described in our <a class="link" href="{% url 'privacy' %}">privacy notice</a>, in line with Rwanda's law on the protection of personal data and privacy. Anonymous, aggregated demand statistics (for example, which medicines are often not found in a district) may be shared with or sold to suppliers and health partners; they never contain patient phone numbers or pharmacy sales by name without consent.</p>
+
+    <h2>7. Availability and liability</h2>
+    <p>We work to keep the service available and accurate, but we cannot guarantee that it is uninterrupted or that every listing is correct at all times. To the extent the law allows, {{ biz.name }} is not liable for losses caused by inaccurate stock or prices published by a pharmacy, by a pharmacy's failure to honour a reservation, or by outages of mobile networks, SMS or payment providers.</p>
+
+    <h2>8. Suspension and ending</h2>
+    <p>You may stop using the service at any time; pharmacies may ask us to close their account. We may suspend accounts that break these terms or the law.</p>
+
+    <h2>9. Changes and governing law</h2>
+    <p>We may update these terms and will show the date of the latest version on this page. These terms are governed by the laws of the Republic of Rwanda.</p>
+  </div>
+</div>

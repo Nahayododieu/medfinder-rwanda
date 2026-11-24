@@ -1,0 +1,76 @@
+{% load humanize %}<section class="hero" style="padding-bottom:40px">
+  <div class="container hero-content">
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.nav_pharmacies }}</span>
+    <h1 style="font-size:clamp(34px,5.4vw,58px)">Abarwayi benshi barakubona.<br><span>Bake ni bo bagenda amaramasa.</span></h1>
+    <p class="hero-copy">Shyira ububiko bwawe kuri {{ biz.name }}. Abarwayi bari hafi babona imiti ufite, bakayibikisha, hanyuma bakaza kuri konteri yawe bafite kode.</p>
+    <p style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px">
+      <a class="btn" href="{% url 'register' %}">Tangira igerageza ry’ubuntu ry’iminsi {{ biz.trial_days }}</a>
+      <a class="btn btn-ghost" href="{% url 'login' %}">Kwinjira kwa farumasi</a>
+    </p>
+  </div>
+</section>
+
+<section class="content-section" style="padding-top:30px">
+  <div class="container">
+    <div class="steps-grid">
+      <article class="step-card"><span class="step-number">01</span><h3>Gera ku bakiriya bashya</h3><p>Abarwayi bashakisha kuri interineti cyangwa kuri USSD ({{ ussd_code }}) babona farumasi yawe, igiciro, intera n’amasaha ukora.</p></article>
+      <article class="step-card"><span class="step-number">02</span><h3>Gurisha, ntutakaze umukiriya</h3><p>Umuti wabikishijwe ubikirwa umurwayi. Ubona SMS kuri buri muti mushya wabikishijwe, ukemeza ko yawufashe ukoresheje kode y’imibare 6.</p></article>
+      <article class="step-card"><span class="step-number">03</span><h3>Menya imiti yo kurangura</h3><p>Reba imiti abarwayi bo mu karere kawe bashakishije ariko ntibayibone, kugira ngo urangure ibigurwa.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="content-section benefit-section" aria-labelledby="pricing-title">
+  <div class="container">
+    <div class="content-intro">
+      <span class="eyebrow">Ibiciro byoroshye</span>
+      <h2 id="pricing-title">Tangira ku buntu. Wishyure ari uko bigufitiye akamaro.</h2>
+      <p>Nta mafaranga yo gutangira, nta masezerano. Ushobora guhagarika igihe icyo ari cyo cyose.</p>
+    </div>
+    <div class="grid-2" style="max-width:820px;margin:0 auto">
+      <div class="card">
+        <span class="badge badge-green">Igerageza ry’ubuntu</span>
+        <p class="kpi" style="border:0;padding:12px 0 0"><span class="value">0 RWF</span><span class="sub">mu minsi {{ biz.trial_days }} ya mbere</span></p>
+        <ul class="prose" style="padding-left:20px;margin:8px 0 0">
+          <li>Imbonerahamwe yuzuye n’imiti itagira umubare</li>
+          <li>Imiti yabikishijwe n’ubutumwa bwa SMS</li>
+          <li>Kuvugurura ububiko kuri interineti, Excel (CSV) cyangwa SMS</li>
+          <li>Nta kwishyura keretse uhisemo gukomeza</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:var(--ink);box-shadow:0 0 0 3px rgba(58, 58, 58, .08)">
+        <span class="badge badge-blue">Buri kwezi</span>
+        <p class="kpi" style="border:0;padding:12px 0 0"><span class="value">{{ biz.price|intcomma }} RWF</span><span class="sub">kuri farumasi, ku kwezi, nyuma y’igerageza</span></p>
+        <ul class="prose" style="padding-left:20px;margin:8px 0 0">
+          <li>Ibiri mu igerageza byose</li>
+          <li>Amakuru ku miti ikenewe ariko itaboneka mu karere kawe</li>
+          <li>Kwishyurwa n’abarwayi kuri MoMo kuri interineti (amafaranga ya serivisi {{ biz.commission_pct|floatformat:"-1" }}% ku miti yishyuwe gusa)</li>
+          <li>Ubufasha kuri telefoni: {{ biz.phone }}</li>
+        </ul>
+      </div>
+    </div>
+    <p class="small" style="text-align:center;margin-top:16px">Nta mafaranga yihishe ari mu biciro. Reba <a class="link" href="{% url 'terms' %}">Amabwiriza yo gukoresha serivisi</a>.</p>
+  </div>
+</section>
+
+<section class="faq-section" style="padding-top:60px" aria-labelledby="pfaq-title">
+  <div class="container">
+    <div class="content-intro"><h2 id="pfaq-title">Ibibazo bya farumasi</h2></div>
+    <div class="faq-list">
+      <details><summary>Ni nde ushobora kwinjira?</summary><p>Farumasi iyo ari yo yose yo mu Rwanda ifite uruhushya rwa Rwanda FDA rwemewe. Tugenzura uruhushya rwawe mbere y’uko abarwayi bakubona.</p></details>
+      <details><summary>Gutangira bifata igihe kingana iki?</summary><p>Iminota nka 20. Iyandikishe kuri interineti, hanyuma wongeremo imiti umwe umwe cyangwa wohereze urupapuro rwa Excel. Dushobora kugufasha tuje aho ukorera.</p></details>
+      <details><summary>Nkeneye mudasobwa?</summary><p>Oya. Imbonerahamwe ikora kuri telefoni, kandi ushobora kuvugurura ububiko ukoresheje SMS: <code>STOCK Paracetamol 500mg 40 120</code>.</p></details>
+      <details><summary>Bite ku miti isaba urupapuro rwa muganga?</summary><p>Irashobora kubikishwa, ariko iba ifite ikimenyetso, kandi ugenzura urupapuro rwa muganga kuri konteri nk’uko bisanzwe.</p></details>
+      <details><summary>Ni nde ubona amakuru yanjye?</summary><p>Abarwayi babona izina ryawe, aho uri, telefoni, amasaha ukora, imiti ufite n’ibiciro. Ibyo ugurisha ntibijya byerekwa izindi farumasi.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="pharmacy-cta" style="padding-top:0">
+  <div class="container">
+    <div class="cta-panel">
+      <div><h2>Witeguye kuboneka?</h2><p>Hamagara {{ biz.phone }} cyangwa wandike kuri {{ biz.email }} tukwereke uko bikora mu minota 15, ku buntu, muri farumasi yawe.</p></div>
+      <div class="cta-actions"><a class="cta-link" href="{% url 'register' %}">Andikisha farumasi yawe →</a></div>
+    </div>
+  </div>
+</section>

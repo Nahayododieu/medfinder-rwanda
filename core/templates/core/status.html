@@ -1,18 +1,18 @@
 {% extends 'core/base.html' %}
-{% block title %}Service status · {{ biz.name }}{% endblock %}
+{% block title %}{% t "Service status" %} · {{ biz.name }}{% endblock %}
 {% block content %}
 <div class="narrow page" style="max-width:640px">
   <div class="page-head"><div><span class="eyebrow">{{ T.nav_status }}</span><h1>
-    {% if overall == 'ok' %}All systems working{% elif overall == 'warn' %}Some services have problems{% else %}Service disruption{% endif %}</h1>
-    <p>Checked {{ now|date:"d M Y, H:i" }} (Kigali time).</p></div></div>
+    {% if overall == 'ok' %}{% t "All systems working" %}{% elif overall == 'warn' %}{% t "Some services have problems" %}{% else %}{% t "Service disruption" %}{% endif %}</h1>
+    <p>{% t "Checked {when} (Kigali time)." when=now|date:"d M Y, H:i" %}</p></div></div>
   <div class="card">
     {% for name, state, note in checks %}
       <div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;{% if not forloop.last %}border-bottom:1px solid var(--line){% endif %}">
-        <strong>{{ name }}</strong>
-        <span>{% if state == 'ok' %}<span class="badge badge-green">{{ note }}</span>{% elif state == 'info' %}<span class="badge badge-gray">{{ note }}</span>{% elif state == 'warn' %}<span class="badge badge-amber">{{ note }}</span>{% else %}<span class="badge badge-red">{{ note }}</span>{% endif %}</span>
+        <strong>{% t name %}</strong>
+        <span>{% if state == 'ok' %}<span class="badge badge-green">{% t note %}</span>{% elif state == 'info' %}<span class="badge badge-gray">{% t note %}</span>{% elif state == 'warn' %}<span class="badge badge-amber">{% t note %}</span>{% else %}<span class="badge badge-red">{% t note %}</span>{% endif %}</span>
       </div>
     {% endfor %}
   </div>
-  <p class="small" style="margin-top:14px">Monitoring services can check <code>/healthz/</code>, which returns <code>{"status": "ok"}</code>.</p>
+  <p class="small" style="margin-top:14px">{% t "Monitoring services can check" %} <code>/healthz/</code>, {% t "which returns" %} <code>{"status": "ok"}</code>.</p>
 </div>
 {% endblock %}

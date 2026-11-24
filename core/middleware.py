@@ -51,3 +51,22 @@ class WelcomeMiddleware:
             return False
         agent = request.headers.get('User-Agent', '').lower()
         return 'mozilla' in agent and not any(word in agent for word in self.NOT_A_PERSON)
+
+
+class LanguageMiddleware:
+    """Switch Django's built-in texts (form errors, dates, "3 days") to the visitor's language.
+
+    Django ships French but not Kinyarwanda; Kinyarwanda versions of those texts are in core/i18n_text.py.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        from django.utils import translation
+        lang = request.session.get('lang') if hasattr(request, 'session') else None
+        translation.activate('fr' if lang == 'fr' else 'en')
+        try:
+            return self.get_response(request)
+        finally:
+            translation.deactivate()

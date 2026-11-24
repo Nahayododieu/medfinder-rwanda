@@ -1107,7 +1107,9 @@ def language_context(request):
     from django.conf import settings
     lang = get_lang(request)
     current = next(item for item in LANGUAGE_MENU if item[0] == lang)
+    from .channels import USSD_TEXT  # the real USSD menu, shown as an example on the home and help pages
     return {'T': strings_for(lang), 'lang': lang, 'languages': LANGUAGES,
+            'ussd_menu': USSD_TEXT.get(lang, USSD_TEXT['en'])['menu'],
             'language_menu': LANGUAGE_MENU, 'current_language': current,
             'ussd_code': settings.USSD_CODE, 'hold_hours': settings.RESERVATION_HOLD_HOURS,
             'biz': {

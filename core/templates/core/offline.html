@@ -1,10 +1,10 @@
 {% extends 'core/base.html' %}
-{% block title %}Offline · {{ biz.name }}{% endblock %}
+{% block title %}{% t "Offline" %} · {{ biz.name }}{% endblock %}
 {% block content %}
 <div class="narrow page" style="text-align:center">
-  <h1 style="margin-top:30px">You are offline</h1>
-  <p class="muted">MedFinder needs a connection to show live stock. Check your data or Wi-Fi and try again.</p>
-  <p class="muted">No internet at all? Dial <strong>{{ ussd_code }}</strong> from any phone to search and reserve by USSD.</p>
-  <p><button class="btn" type="button" onclick="location.reload()">Try again</button></p>
+  <h1 style="margin-top:30px">{% t "You are offline" %}</h1>
+  <p class="muted">{% t "MedFinder needs a connection to show live stock. Check your data or Wi-Fi and try again." %}</p>
+  <p class="muted">{% t "No internet at all? Dial" %} <strong>{{ ussd_code }}</strong> {% t "from any phone to search and reserve by USSD." %}</p>
+  <p><button class="btn" type="button" onclick="location.reload()">{% t "Try again" %}</button></p>
 </div>
 {% endblock %}

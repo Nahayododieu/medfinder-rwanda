@@ -4,7 +4,7 @@
 {% block content %}
 <section class="page-hero">
   <div class="container">
-    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ T.nav_help }}</span></nav>
+    <nav class="breadcrumb" aria-label="{% t "Breadcrumb" %}"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ T.nav_help }}</span></nav>
     <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.help_eyebrow }}</span>
     <h1>{{ T.help_title }}</h1>
     <p>{{ T.help_copy }}</p>
@@ -53,11 +53,7 @@
       <p class="muted">{{ T.faq_a5 }}</p>
       <span class="ussd-code">{{ ussd_code }}</span>
     </div>
-    <div class="phone-mock" aria-hidden="true">Welcome to MedFinder
-1. Search medicine
-2. Check my reservation
-3. Help
-4. Ikinyarwanda</div>
+    <div class="phone-mock" aria-hidden="true">{{ ussd_menu }}</div>
   </section>
 
   <section style="margin-top:36px" aria-labelledby="faq-title">

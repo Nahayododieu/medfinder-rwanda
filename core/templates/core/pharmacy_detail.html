@@ -7,7 +7,7 @@
 {% block content %}
 <section class="page-hero">
   <div class="container">
-    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><a href="{% url 'pharmacy_list' %}">{{ T.nav_find_pharmacy }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ pharmacy.name }}</span></nav>
+    <nav class="breadcrumb" aria-label="{% t "Breadcrumb" %}"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><a href="{% url 'pharmacy_list' %}">{{ T.nav_find_pharmacy }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ pharmacy.name }}</span></nav>
     <div class="profile-head">
       <span class="profile-mark" aria-hidden="true">{{ pharmacy.name|slice:":1" }}</span>
       <div>

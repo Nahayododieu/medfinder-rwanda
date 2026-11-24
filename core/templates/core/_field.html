@@ -1,10 +1,10 @@
 <div class="field{% if f.field.widget.input_type == 'checkbox' %} check{% endif %}{% if full %} full{% endif %}">
   {% if f.field.widget.input_type == 'checkbox' %}
-    <label for="{{ f.id_for_label }}">{{ f }} <span>{{ f.label }}</span></label>
+    <label for="{{ f.id_for_label }}">{{ f }} <span>{% t f.label %}</span></label>
   {% else %}
-    <label for="{{ f.id_for_label }}">{{ f.label }}{% if not f.field.required %} <span class="muted">(optional)</span>{% endif %}</label>
+    <label for="{{ f.id_for_label }}">{% t f.label %}{% if not f.field.required %} <span class="muted">{% t "(optional)" %}</span>{% endif %}</label>
     {{ f }}
   {% endif %}
-  {% if f.help_text %}<div class="help">{{ f.help_text }}</div>{% endif %}
-  {% for e in f.errors %}<div class="err">{{ e }}</div>{% endfor %}
+  {% if f.help_text %}<div class="help">{% t f.help_text %}</div>{% endif %}
+  {% for e in f.errors %}<div class="err">{% t e %}</div>{% endfor %}
 </div>

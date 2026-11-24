@@ -1,0 +1,34 @@
+<section class="hero" style="padding-bottom:36px">
+  <div class="container hero-content">
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.nav_about }}</span>
+    <h1 style="font-size:clamp(34px,5vw,56px)">Nta murwayi ukwiye kuzenguruka<br><span>farumasi ku yindi.</span></h1>
+    <p class="hero-copy">{{ biz.name }} yerekana farumasi zo mu Rwanda zifite umuti runaka mu bubiko ubu, kugira ngo abarwayi bawubone ku nshuro ya mbere, kandi farumasi zigere ku barwayi bazikeneye.</p>
+  </div>
+</section>
+<div class="container page" style="max-width:900px;padding-top:0">
+  <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="kpi"><span class="label">Farumasi zemejwe</span><span class="value">{{ stats.pharmacies }}</span></div>
+    <div class="kpi"><span class="label">Imiti iri ku rutonde</span><span class="value">{{ stats.medicines }}</span></div>
+    <div class="kpi"><span class="label">Uturere tugerwaho</span><span class="value">{{ stats.districts }}</span></div>
+  </div>
+  <div class="card prose">
+    <h2 style="margin-top:0">Intego yacu</h2>
+    <p>Gutuma buri muti wo mu Rwanda ushakwa byoroshye: kuri smartphone, kuri telefoni isanzwe ukoresheje USSD, mu Kinyarwanda, Icyongereza cyangwa Igifaransa.</p>
+    <h2>Ikibazo dukemura</h2>
+    <p>Muri iki gihe, umurwayi ufite urupapuro rwa muganga akenshi ajya cyangwa ahamagara farumasi nyinshi mbere yo kubona umuti, agatakaza igihe n’amafaranga y’urugendo, rimwe na rimwe bigatinza kuvurwa. Na ho farumasi ntizibona abarwayi zibura.</p>
+    <h2>Uko dukora</h2>
+    <ul>
+      <li><strong>Farumasi zemejwe gusa.</strong> Tugenzura uruhushya rwa Rwanda FDA rwa buri farumasi mbere y’uko igaragara.</li>
+      <li><strong>Ububiko n’ibiciro bigezweho.</strong> Farumasi zivugurura ububiko zikoresheje imbonerahamwe, Excel, SMS cyangwa USSD.</li>
+      <li><strong>Bikisha hanyuma ufate.</strong> Abarwayi babikisha bakoresheje nimero ya telefoni, bagafata umuti bakoresheje kode ya SMS; kwishyura bikorerwa kuri farumasi cyangwa kuri mobile money.</li>
+      <li><strong>Amakuru bwite mbere ya byose.</strong> Abarwayi batanga nimero ya telefoni gusa. Imibare y’ibikenewe ntigaragaza abantu.</li>
+      <li><strong>Nta nama z’ubuvuzi.</strong> Turamenyesha; abafarumasiye ni bo batanga inama n’imiti.</li>
+    </ul>
+    <h2>Abo turi bo</h2>
+    <p>{{ biz.name }}{% if founder %} yashinzwe na {{ founder }}{% endif %}{% if biz.owner %} kandi icungwa na {{ biz.owner }}{% endif %}{% if biz.rdb %} (kode ya sosiyete muri RDB: {{ biz.rdb }}){% endif %}. Turi serivisi y’ikoranabuhanga mu buzima yo mu Rwanda ikorana na farumasi zigenga.</p>
+  </div>
+  <div class="cta-panel" style="margin-top:20px">
+    <div><h2>Korana natwe</h2><p>Farumasi, abatanga imiti, ibigo by’ubwishingizi n’imishinga y’ubuzima: twifuza kubumva.</p></div>
+    <div class="cta-actions"><a class="cta-link" href="{% url 'contact' %}">{{ T.nav_contact }} →</a><a class="cta-link outline" href="{% url 'for_pharmacies' %}">{{ T.nav_pharmacies }}</a></div>
+  </div>
+</div>

@@ -4,7 +4,7 @@
 {% block content %}
 <section class="page-hero">
   <div class="container">
-    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ T.nav_medicines }}</span></nav>
+    <nav class="breadcrumb" aria-label="{% t "Breadcrumb" %}"><a href="{% url 'search' %}">{{ T.breadcrumb_home }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ T.nav_medicines }}</span></nav>
     <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.medicines_eyebrow }}</span>
     <h1>{% if category %}{{ category }}{% else %}{{ T.medicines_title }}{% endif %}</h1>
     <p>{{ T.medicines_copy }}</p>

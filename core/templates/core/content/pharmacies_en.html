@@ -1,0 +1,77 @@
+{% load humanize %}
+<section class="hero" style="padding-bottom:40px">
+  <div class="container hero-content">
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> For pharmacies</span>
+    <h1 style="font-size:clamp(34px,5.4vw,58px)">More patients find you.<br><span>Fewer leave empty-handed.</span></h1>
+    <p class="hero-copy">List your stock on {{ biz.name }}. Patients nearby see what you have, reserve it, and come to your counter with a pickup code.</p>
+    <p style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px">
+      <a class="btn" href="{% url 'register' %}">Start your free {{ biz.trial_days }}-day trial</a>
+      <a class="btn btn-ghost" href="{% url 'login' %}">Pharmacy login</a>
+    </p>
+  </div>
+</section>
+
+<section class="content-section" style="padding-top:30px">
+  <div class="container">
+    <div class="steps-grid">
+      <article class="step-card"><span class="step-number">01</span><h3>Reach new customers</h3><p>Patients searching on the web or by USSD ({{ ussd_code }}) see your pharmacy, price, distance and opening hours.</p></article>
+      <article class="step-card"><span class="step-number">02</span><h3>Sell, not lose, the sale</h3><p>Reservations hold the item for the patient. You get an SMS for every new reservation and confirm pickup with a 6-digit code.</p></article>
+      <article class="step-card"><span class="step-number">03</span><h3>Know what to stock</h3><p>See which medicines patients in your district searched for but could not find, so you can order what sells.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="content-section benefit-section" aria-labelledby="pricing-title">
+  <div class="container">
+    <div class="content-intro">
+      <span class="eyebrow">Simple pricing</span>
+      <h2 id="pricing-title">Start free. Pay only when it works for you.</h2>
+      <p>No set-up fee, no contract. Cancel any time.</p>
+    </div>
+    <div class="grid-2" style="max-width:820px;margin:0 auto">
+      <div class="card">
+        <span class="badge badge-green">Free trial</span>
+        <p class="kpi" style="border:0;padding:12px 0 0"><span class="value">0 RWF</span><span class="sub">for the first {{ biz.trial_days }} days</span></p>
+        <ul class="prose" style="padding-left:20px;margin:8px 0 0">
+          <li>Full dashboard and unlimited medicines</li>
+          <li>Reservations with SMS alerts</li>
+          <li>Stock updates by web, Excel (CSV) or SMS</li>
+          <li>No charge unless you choose to continue</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:var(--ink);box-shadow:0 0 0 3px rgba(58, 58, 58, .08)">
+        <span class="badge badge-blue">Monthly</span>
+        <p class="kpi" style="border:0;padding:12px 0 0"><span class="value">{{ biz.price|intcomma }} RWF</span><span class="sub">per pharmacy, per month, after the trial</span></p>
+        <ul class="prose" style="padding-left:20px;margin:8px 0 0">
+          <li>Everything in the trial</li>
+          <li>Unmet-demand insights for your district</li>
+          <li>Online MoMo payments from patients ({{ biz.commission_pct|floatformat:"-1" }}% service fee on paid reservations only)</li>
+          <li>Phone support: {{ biz.phone }}</li>
+        </ul>
+      </div>
+    </div>
+    <p class="small" style="text-align:center;margin-top:16px">Prices include no hidden fees. See the <a class="link" href="{% url 'terms' %}">Terms of Service</a>.</p>
+  </div>
+</section>
+
+<section class="faq-section" style="padding-top:60px" aria-labelledby="pfaq-title">
+  <div class="container">
+    <div class="content-intro"><h2 id="pfaq-title">Questions from pharmacies</h2></div>
+    <div class="faq-list">
+      <details><summary>Who can join?</summary><p>Any pharmacy in Rwanda with a valid Rwanda FDA license. We verify your license before patients can see you.</p></details>
+      <details><summary>How long does set-up take?</summary><p>About 20 minutes. Register online, then add your medicines one by one or upload an Excel sheet. We can help you on site.</p></details>
+      <details><summary>Do I need a computer?</summary><p>No. The dashboard works on a phone, and you can update stock by SMS: <code>STOCK Paracetamol 500mg 40 120</code>.</p></details>
+      <details><summary>What about prescription-only medicines?</summary><p>They can be reserved, but they are marked, and you check the prescription at the counter as usual.</p></details>
+      <details><summary>Who sees my data?</summary><p>Patients see your name, location, phone, hours, medicines in stock and prices. Your sales figures are never shown to other pharmacies.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="pharmacy-cta" style="padding-top:0">
+  <div class="container">
+    <div class="cta-panel">
+      <div><h2>Ready to be found?</h2><p>Call {{ biz.phone }} or email {{ biz.email }} for a free 15-minute demo at your pharmacy.</p></div>
+      <div class="cta-actions"><a class="cta-link" href="{% url 'register' %}">Register your pharmacy →</a></div>
+    </div>
+  </div>
+</section>

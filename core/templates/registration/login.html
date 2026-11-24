@@ -1,19 +1,19 @@
 {% extends 'core/base.html' %}
-{% block title %}Pharmacy login · MedFinder Rwanda{% endblock %}
+{% block title %}{% t "Pharmacy login" %} · MedFinder Rwanda{% endblock %}
 {% block content %}
 <div class="narrow page" style="max-width:460px">
-  <div class="page-head"><div><span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Partners</span><h1>Pharmacy login</h1><p>Manage your stock and reservations.</p></div></div>
+  <div class="page-head"><div><span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {% t "Partners" %}</span><h1>{% t "Pharmacy login" %}</h1><p>{% t "Manage your stock and reservations." %}</p></div></div>
   <div class="card">
     <form method="post" class="stack">
       {% csrf_token %}
-      {% if form.errors %}<p class="alert alert-red" style="margin:0">Wrong username or password.</p>{% endif %}
+      {% if form.errors %}<p class="alert alert-red" style="margin:0">{% t "Wrong username or password." %}</p>{% endif %}
       <input type="hidden" name="next" value="{{ next }}">
-      <div class="field"><label for="id_username">Username</label>{{ form.username }}</div>
-      <div class="field"><label for="id_password">Password</label>{{ form.password }}</div>
-      <button type="submit" class="btn btn-block">Log in</button>
-      <p class="small" style="margin:0;text-align:center"><a class="link" href="{% url 'password_reset' %}">Forgot your password?</a></p>
+      <div class="field"><label for="id_username">{% t "Username" %}</label>{{ form.username }}</div>
+      <div class="field"><label for="id_password">{% t "Password" %}</label>{{ form.password }}</div>
+      <button type="submit" class="btn btn-block">{% t "Log in" %}</button>
+      <p class="small" style="margin:0;text-align:center"><a class="link" href="{% url 'password_reset' %}">{% t "Forgot your password?" %}</a></p>
     </form>
   </div>
-  <p class="small" style="margin-top:16px">New pharmacy? <a class="link" href="{% url 'register' %}">Register here</a> · <a class="link" href="{% url 'search' %}">Back to search</a></p>
+  <p class="small" style="margin-top:16px">{% t "New pharmacy?" %} <a class="link" href="{% url 'register' %}">{% t "Register here" %}</a> · <a class="link" href="{% url 'search' %}">{% t "Back to search" %}</a></p>
 </div>
 {% endblock %}

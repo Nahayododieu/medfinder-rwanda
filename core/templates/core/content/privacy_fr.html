@@ -1,0 +1,34 @@
+<div class="narrow page">
+  <div class="page-head"><div><span class="eyebrow">Mis à jour en {% now "m/Y" %}</span><h1>Politique de confidentialité</h1>
+    <p>Comment {{ biz.name }} traite vos informations, conformément à la loi rwandaise relative à la protection des données à caractère personnel et de la vie privée. Voir aussi nos <a class="link" href="{% url 'terms' %}">Conditions d’utilisation</a>.</p>
+    <p class="small">Ceci est une traduction. En cas de doute, la version anglaise fait foi.</p></div></div>
+  <div class="card prose">
+    <h2>Responsable du traitement</h2>
+    <p>{{ biz.name }}{% if biz.owner %}, exploitée par {{ biz.owner }}{% endif %}{% if biz.rdb %} (code d’entreprise RDB {{ biz.rdb }}){% endif %}, est responsable de vos données. Contactez-nous au sujet de vos données à {{ biz.email }} ou au {{ biz.phone }}.</p>
+    <h2>Ce que nous collectons</h2>
+    <ul>
+      <li><strong>Patients :</strong> uniquement le numéro de téléphone saisi lors d’une réservation ou d’un paiement, ainsi que le médicament et la quantité réservés. Nous ne demandons ni votre nom, ni votre diagnostic, ni votre pièce d’identité.</li>
+      <li><strong>Recherches :</strong> le nom du médicament recherché, le district et s’il a été trouvé. Les recherches sont conservées <em>sans</em> numéro de téléphone ni coordonnées de localisation.</li>
+      <li><strong>Localisation :</strong> si vous l’autorisez, la position de votre navigateur sert uniquement à trier les pharmacies proches pour cette recherche. Elle n’est pas conservée.</li>
+      <li><strong>Pharmacies :</strong> nom commercial, numéro de licence, téléphone, adresse et position sur la carte, ainsi que le stock et les prix qu’elles publient.</li>
+    </ul>
+    <h2>Pourquoi nous les utilisons</h2>
+    <ul>
+      <li>Pour vous envoyer votre code de retrait et les mises à jour par SMS.</li>
+      <li>Pour permettre à la pharmacie de confirmer votre réservation et, si vous le choisissez, de traiter un paiement MTN Mobile Money.</li>
+      <li>Pour produire des statistiques de demande anonymes (par exemple, les médicaments souvent introuvables dans un district) qui aident pharmacies, fournisseurs et planificateurs de santé à réduire les ruptures.</li>
+    </ul>
+    <h2>Qui peut les voir</h2>
+    <p>Seule la pharmacie auprès de laquelle vous avez réservé voit votre numéro de téléphone. Les administrateurs peuvent consulter les enregistrements pour vérifier les pharmacies et résoudre les problèmes. Des statistiques anonymes et agrégées peuvent être partagées avec des partenaires ; elles ne contiennent jamais de numéros de téléphone.</p>
+    <h2>Prestataires</h2>
+    <p>Les SMS et l’USSD passent par Africa’s Talking, les paiements par MTN Mobile Money, et les cartes utilisent OpenStreetMap. Ces prestataires ne reçoivent que ce dont ils ont besoin pour fournir leur service.</p>
+    <h2>Durée de conservation</h2>
+    <p>Les réservations sont conservées jusqu’à 12 mois à des fins d’audit et de règlement des litiges, puis supprimées ou anonymisées.</p>
+    <h2>Vos droits</h2>
+    <p>Vous pouvez demander à consulter, corriger ou supprimer vos données, ou retirer votre consentement, en nous contactant à {{ biz.email }} ou au {{ biz.phone }}. Nous répondons sous 30 jours. Le retrait du consentement n’affecte pas les réservations déjà récupérées. Vous pouvez aussi saisir l’autorité rwandaise de protection des données.</p>
+    <h2>Médicaments et ordonnances</h2>
+    <p>MedFinder ne vend, ne prescrit ni ne livre de médicaments et ne donne pas de conseils médicaux. Les pharmacies sont responsables de l’exactitude de leur stock et de leurs prix, et de la vérification des ordonnances pour les médicaments qui en exigent une, conformément aux règles de Rwanda FDA.</p>
+    <h2>Réservations</h2>
+    <p>Les réservations non payées sont conservées {{ hold_hours }} heures, puis libérées automatiquement. Les réservations payées annulées par la pharmacie sont remboursées.</p>
+  </div>
+</div>

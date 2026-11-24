@@ -12,7 +12,7 @@
   <div class="alert-form-row">
     <label class="sr-only" for="alert-phone">{{ T.your_phone }}</label>
     <input class="input" type="tel" id="alert-phone" name="phone" placeholder="{{ T.your_phone }} (07…)" autocomplete="tel" inputmode="tel" maxlength="20" pattern="[0-9+ ]{9,16}" required>
-    <label class="sr-only" for="alert-district">District</label>
+    <label class="sr-only" for="alert-district">{% t "District" %}</label>
     <select class="input" id="alert-district" name="district">
       <option value="">{{ T.alert_any_district }}</option>
       {% for value, label in districts %}<option value="{{ value }}"{% if value == district %} selected{% endif %}>{{ label }}</option>{% endfor %}

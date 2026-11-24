@@ -1,0 +1,76 @@
+{% load humanize %}<section class="hero" style="padding-bottom:40px">
+  <div class="container hero-content">
+    <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> {{ T.nav_pharmacies }}</span>
+    <h1 style="font-size:clamp(34px,5.4vw,58px)">Plus de patients vous trouvent.<br><span>Moins repartent les mains vides.</span></h1>
+    <p class="hero-copy">Publiez votre stock sur {{ biz.name }}. Les patients à proximité voient ce que vous avez, le réservent et viennent à votre comptoir avec un code de retrait.</p>
+    <p style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px">
+      <a class="btn" href="{% url 'register' %}">Commencer l’essai gratuit de {{ biz.trial_days }} jours</a>
+      <a class="btn btn-ghost" href="{% url 'login' %}">Espace pharmacie</a>
+    </p>
+  </div>
+</section>
+
+<section class="content-section" style="padding-top:30px">
+  <div class="container">
+    <div class="steps-grid">
+      <article class="step-card"><span class="step-number">01</span><h3>Touchez de nouveaux clients</h3><p>Les patients qui cherchent sur le web ou par USSD ({{ ussd_code }}) voient votre pharmacie, vos prix, la distance et vos horaires.</p></article>
+      <article class="step-card"><span class="step-number">02</span><h3>Vendez au lieu de perdre la vente</h3><p>La réservation garde le produit pour le patient. Vous recevez un SMS à chaque nouvelle réservation et confirmez le retrait avec un code à 6 chiffres.</p></article>
+      <article class="step-card"><span class="step-number">03</span><h3>Sachez quoi stocker</h3><p>Voyez quels médicaments les patients de votre district ont cherchés sans les trouver, pour commander ce qui se vend.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="content-section benefit-section" aria-labelledby="pricing-title">
+  <div class="container">
+    <div class="content-intro">
+      <span class="eyebrow">Tarifs simples</span>
+      <h2 id="pricing-title">Commencez gratuitement. Payez seulement si cela vous sert.</h2>
+      <p>Aucun frais d’installation, aucun contrat. Résiliable à tout moment.</p>
+    </div>
+    <div class="grid-2" style="max-width:820px;margin:0 auto">
+      <div class="card">
+        <span class="badge badge-green">Essai gratuit</span>
+        <p class="kpi" style="border:0;padding:12px 0 0"><span class="value">0 RWF</span><span class="sub">pendant les {{ biz.trial_days }} premiers jours</span></p>
+        <ul class="prose" style="padding-left:20px;margin:8px 0 0">
+          <li>Tableau de bord complet et médicaments illimités</li>
+          <li>Réservations avec alertes SMS</li>
+          <li>Mise à jour du stock par web, Excel (CSV) ou SMS</li>
+          <li>Aucun frais sauf si vous choisissez de continuer</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:var(--ink);box-shadow:0 0 0 3px rgba(58, 58, 58, .08)">
+        <span class="badge badge-blue">Mensuel</span>
+        <p class="kpi" style="border:0;padding:12px 0 0"><span class="value">{{ biz.price|intcomma }} RWF</span><span class="sub">par pharmacie et par mois, après l’essai</span></p>
+        <ul class="prose" style="padding-left:20px;margin:8px 0 0">
+          <li>Tout ce qui est inclus dans l’essai</li>
+          <li>Analyse de la demande non satisfaite dans votre district</li>
+          <li>Paiements MoMo en ligne des patients (frais de service de {{ biz.commission_pct|floatformat:"-1" }} % uniquement sur les réservations payées)</li>
+          <li>Assistance téléphonique : {{ biz.phone }}</li>
+        </ul>
+      </div>
+    </div>
+    <p class="small" style="text-align:center;margin-top:16px">Aucun frais caché. Consultez les <a class="link" href="{% url 'terms' %}">Conditions d’utilisation</a>.</p>
+  </div>
+</section>
+
+<section class="faq-section" style="padding-top:60px" aria-labelledby="pfaq-title">
+  <div class="container">
+    <div class="content-intro"><h2 id="pfaq-title">Questions des pharmacies</h2></div>
+    <div class="faq-list">
+      <details><summary>Qui peut s’inscrire ?</summary><p>Toute pharmacie du Rwanda disposant d’une licence Rwanda FDA valide. Nous vérifions votre licence avant que les patients puissent vous voir.</p></details>
+      <details><summary>Combien de temps faut-il pour démarrer ?</summary><p>Environ 20 minutes. Inscrivez-vous en ligne, puis ajoutez vos médicaments un par un ou importez une feuille Excel. Nous pouvons vous aider sur place.</p></details>
+      <details><summary>Ai-je besoin d’un ordinateur ?</summary><p>Non. Le tableau de bord fonctionne sur téléphone, et vous pouvez mettre à jour le stock par SMS : <code>STOCK Paracetamol 500mg 40 120</code>.</p></details>
+      <details><summary>Et les médicaments sur ordonnance ?</summary><p>Ils peuvent être réservés, mais ils sont signalés, et vous vérifiez l’ordonnance au comptoir comme d’habitude.</p></details>
+      <details><summary>Qui voit mes données ?</summary><p>Les patients voient votre nom, votre emplacement, votre téléphone, vos horaires, les médicaments en stock et leurs prix. Vos chiffres de vente ne sont jamais montrés aux autres pharmacies.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="pharmacy-cta" style="padding-top:0">
+  <div class="container">
+    <div class="cta-panel">
+      <div><h2>Prêt à être trouvé ?</h2><p>Appelez le {{ biz.phone }} ou écrivez à {{ biz.email }} pour une démonstration gratuite de 15 minutes dans votre pharmacie.</p></div>
+      <div class="cta-actions"><a class="cta-link" href="{% url 'register' %}">Inscrire votre pharmacie →</a></div>
+    </div>
+  </div>
+</section>

@@ -15,21 +15,21 @@
 
   <div class="card ticket">
     <p class="small">{{ T.show_code }}</p>
-    <div class="code" aria-label="Pickup code">{{ res.pickup_code }}</div>
+    <div class="code" aria-label="{% t "Pickup code" %}">{{ res.pickup_code }}</div>
     <p class="small">{{ T.reservation_no }}: <strong>#{{ res.pk }}</strong>{% if res.is_open and not res.is_paid %} · {{ T.hold_until }} <strong>{{ res.expires_at|date:"H:i" }}</strong>{% endif %}</p>
   </div>
 
   <div class="card">
     <dl class="detail-list">
       <dt>{{ T.search_label }}</dt><dd>{{ res.inventory.medicine.name }} × {{ res.quantity }}</dd>
-      <dt>Pharmacy</dt><dd>{{ res.inventory.pharmacy.name }} ({{ res.inventory.pharmacy.district }})</dd>
-      {% if res.inventory.pharmacy.address %}<dt>Address</dt><dd>{{ res.inventory.pharmacy.address }}</dd>{% endif %}
+      <dt>{% t "Pharmacy" %}</dt><dd>{{ res.inventory.pharmacy.name }} ({{ res.inventory.pharmacy.district }})</dd>
+      {% if res.inventory.pharmacy.address %}<dt>{% t "Address" %}</dt><dd>{{ res.inventory.pharmacy.address }}</dd>{% endif %}
       <dt>{{ T.phone }}</dt><dd><a class="link" href="tel:{{ res.inventory.pharmacy.phone }}">{{ res.inventory.pharmacy.phone }}</a></dd>
       {% if res.delivery %}<dt>{{ T.delivery_to }}</dt><dd>{{ res.delivery_address }}</dd>
       <dt>{{ T.delivery_fee }}</dt><dd>{% if res.delivery_fee %}{{ res.delivery_fee|floatformat:0 }} RWF{% else %}{{ T.free }}{% endif %}</dd>{% endif %}
       <dt>{{ T.total_pay }}</dt><dd>{{ res.total|floatformat:0 }} RWF {% if res.is_paid %}<span class="badge badge-green">{{ T.paid }}</span>{% endif %}</dd>
       {% if res.order_id %}<dt>{{ T.part_of_order }}</dt><dd><a class="link" href="{% url 'order_detail' res.order_id res.pickup_code %}">#{{ res.order_id }} →</a></dd>{% endif %}
-      <dt>Reserved</dt><dd>{{ res.created_at|date:"d M Y, H:i" }}</dd>
+      <dt>{% t "Reserved" %}</dt><dd>{{ res.created_at|date:"d M Y, H:i" }}</dd>
     </dl>
     <p style="margin:14px 0 0">
       <a class="btn btn-ghost btn-sm" href="https://www.openstreetmap.org/directions?to={{ res.inventory.pharmacy.latitude|stringformat:'f' }}%2C{{ res.inventory.pharmacy.longitude|stringformat:'f' }}" target="_blank" rel="noopener">{{ T.directions }} ↗</a>
@@ -97,7 +97,7 @@
       <form method="post" action="{% url 'reservation_review' res.pk res.pickup_code %}" class="stack">
         {% csrf_token %}
         <fieldset style="border:0;padding:0;margin:0">
-          <legend class="sr-only">Rating</legend>
+          <legend class="sr-only">{% t "Rating" %}</legend>
           <div class="stars">
             {% for v in "54321" %}
               <input type="radio" name="rating" id="star{{ v }}" value="{{ v }}" required><label for="star{{ v }}" title="{{ v }} / 5">★</label>
