@@ -5,12 +5,13 @@ import tempfile
 from datetime import timedelta
 from decimal import Decimal
 
+from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Inventory, Medicine, Order, Payment, Reservation, SmsLog
+from .models import Inventory, Medicine, Order, Payment, Pharmacy, Reservation, SmsLog
 from .services import send_hold_reminders
 from .tests import PHONE, PHONE_E164, BaseTestCase
 
@@ -651,3 +652,41 @@ class LanguageCoverageTests(BaseTestCase):
             'Your old password was entered incorrectly. Please enter it again.',
             'This password is too short. It must contain at least 8 characters.', 'This password is too common.',
             'This password is entirely numeric.'}, set())  # Django already translates those into French
+
+
+@override_settings(MEDIA_ROOT=MEDIA)
+class RegistrationFeedbackTests(BaseTestCase):
+    """Registering a pharmacy: problems are listed at the top; success is confirmed clearly."""
+
+    def data(self, **changes):
+        data = {'username': 'newpharma', 'email': 'new@example.com', 'password': 'Strong-pass-2026',
+                'password_confirm': 'Strong-pass-2026', 'name': 'New Pharmacy', 'license_no': 'NEW-001',
+                'district': 'Gasabo', 'phone': '0788123456', 'address': '', 'latitude': '-1.95',
+                'longitude': '30.06', 'agree': 'on',
+                'license_document': SimpleUploadedFile('lic.pdf', b'%PDF-1.4 test', content_type='application/pdf')}
+        data.update(changes)
+        return data
+
+    def test_problems_are_listed_at_the_top(self):
+        response = self.client.post(reverse('register'), self.data(latitude='', longitude='', username='pharmacy'))
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        summary = html.index('id="form-errors"')
+        self.assertLess(summary, html.index('id="id_username"'))  # before the first field
+        self.assertIn('This username is taken.', html[summary:summary + 2000])
+        self.assertIn('Choose your pharmacy’s location on the map', html[summary:summary + 2000])
+        self.assertIn('choose it again', html)  # the licence file must be chosen again
+        self.assertFalse(User.objects.filter(username='newpharma').exists())
+
+    def test_location_outside_rwanda_is_explained(self):
+        response = self.client.post(reverse('register'), self.data(latitude='18', longitude='3'))
+        self.assertContains(response, 'The location must be inside Rwanda.')
+
+    def test_successful_registration_is_confirmed_in_the_chosen_language(self):
+        self.client.get(reverse('set_language', args=['rw']))
+        response = self.client.post(reverse('register'), self.data(), follow=True)
+        self.assertRedirects(response, reverse('login'))
+        self.assertContains(response, 'Kwiyandikisha kwakiriwe.')
+        pharmacy = Pharmacy.objects.get(license_no='NEW-001')
+        self.assertFalse(pharmacy.verified)
+        self.assertTrue(pharmacy.license_document.name.startswith('licenses/'))

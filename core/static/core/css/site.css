@@ -1106,3 +1106,13 @@ tr:target { scroll-margin-top: 90px; }
   .welcome-art { margin: 22px 0 8px; }
   .welcome-tagline, .welcome-points { margin-left: 0; }
 }
+
+/* Registration: list of problems at the top of the form, and the map location warning */
+.form-summary { margin-bottom: 16px; padding: 14px 16px; border-color: var(--red); color: var(--ink); }
+.form-summary strong { display: block; margin-bottom: 6px; color: var(--red); }
+.form-summary ul { margin: 0 0 8px; padding-left: 20px; }
+.form-summary li { margin: 3px 0; }
+.form-summary a { color: var(--red); font-weight: 700; }
+.form-summary p { margin: 0; font-size: 13px; }
+.form-summary:focus { outline: 3px solid var(--red); outline-offset: 2px; }
+#geomsg.err { color: var(--red); font-weight: 700; }

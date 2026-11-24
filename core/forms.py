@@ -182,6 +182,14 @@ class TrackForm(forms.Form):
                             error_messages={'invalid': 'The pickup code has 6 digits.'})
 
 
+LOCATION_ERRORS = {
+    'required': 'Choose your pharmacy’s location on the map (click the map or use your current location).',
+    'invalid': 'The location must be inside Rwanda.',
+    'min_value': 'The location must be inside Rwanda.',
+    'max_value': 'The location must be inside Rwanda.',
+}
+
+
 class PharmacyRegisterForm(forms.Form):
     username = forms.CharField(max_length=150, help_text='Used to log in.')
     email = forms.EmailField(help_text='Used to reset your password if you forget it.')
@@ -194,8 +202,8 @@ class PharmacyRegisterForm(forms.Form):
     district = forms.ChoiceField(choices=[('', 'Choose district…')] + DISTRICT_CHOICES)
     address = forms.CharField(max_length=200, required=False, help_text='Street, landmark or building (optional).')
     phone = forms.CharField(max_length=20, help_text='Patients call this number. Also used for SMS stock updates.')
-    latitude = forms.FloatField(min_value=-2.9, max_value=-1.0)
-    longitude = forms.FloatField(min_value=28.8, max_value=30.95)
+    latitude = forms.FloatField(min_value=-2.9, max_value=-1.0, error_messages=LOCATION_ERRORS)
+    longitude = forms.FloatField(min_value=28.8, max_value=30.95, error_messages=LOCATION_ERRORS)
     agree = forms.BooleanField(label='I confirm this pharmacy is licensed and I accept the terms and privacy notice.')
 
     def clean_username(self):

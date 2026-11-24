@@ -143,6 +143,11 @@ TEXT = {
         'Privacy notice': 'Itangazo ryerekeye amakuru bwite',
         'Submit registration': 'Ohereza kwiyandikisha',
         'Already registered? Log in': 'Wariyandikishije? Injira',
+        'Your registration was not sent yet. Please correct these problems:': 'Kwiyandikisha kwawe ntikuroherezwa. Banza ukosore ibi bikurikira:',
+        'For your security, your browser cleared the licence file: please choose it again before sending.': 'Ku bw’umutekano, mushakisha yawe yakuyeho dosiye y’uruhushya: ongera uyihitemo mbere yo kohereza.',
+        'Choose your pharmacy’s location on the map (click the map or use your current location).': 'Hitamo aho farumasi yawe iri ku ikarita (kanda ku ikarita cyangwa ukoreshe aho uri ubu).',
+        'The passwords do not match.': 'Amagambo y’ibanga ntabwo ahuye.',
+        'Registration received. Log in to add your stock. Your pharmacy appears in search once an administrator verifies your license.': 'Kwiyandikisha kwakiriwe. Injira wongeremo imiti ufite. Farumasi yawe izagaragara mu ishakisha nyuma y’uko umuyobozi agenzuye uruhushya rwawe.',
 
         # --- Contact ---
         'Contact': 'Twandikire',
@@ -328,6 +333,11 @@ TEXT = {
         'Privacy notice': 'Politique de confidentialité',
         'Submit registration': 'Envoyer l’inscription',
         'Already registered? Log in': 'Déjà inscrit ? Connectez-vous',
+        'Your registration was not sent yet. Please correct these problems:': 'Votre inscription n’a pas encore été envoyée. Corrigez ces problèmes :',
+        'For your security, your browser cleared the licence file: please choose it again before sending.': 'Pour votre sécurité, votre navigateur a retiré le fichier de licence : choisissez-le à nouveau avant d’envoyer.',
+        'Choose your pharmacy’s location on the map (click the map or use your current location).': 'Indiquez l’emplacement de votre pharmacie sur la carte (cliquez sur la carte ou utilisez votre position actuelle).',
+        'The passwords do not match.': 'Les mots de passe ne correspondent pas.',
+        'Registration received. Log in to add your stock. Your pharmacy appears in search once an administrator verifies your license.': 'Inscription reçue. Connectez-vous pour ajouter votre stock. Votre pharmacie apparaîtra dans la recherche dès qu’un administrateur aura vérifié votre licence.',
 
         # --- Contact ---
         'Contact': 'Contact',

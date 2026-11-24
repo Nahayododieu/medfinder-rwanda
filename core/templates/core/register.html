@@ -12,7 +12,16 @@
   </div>
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
-    {% if form.non_field_errors %}<p class="alert alert-red">{% for e in form.non_field_errors %}{% t e %} {% endfor %}</p>{% endif %}
+    {% if form.errors %}
+    <div class="alert alert-red form-summary" id="form-errors" role="alert" tabindex="-1">
+      <strong>{% t "Your registration was not sent yet. Please correct these problems:" %}</strong>
+      <ul>
+        {% for e in form.non_field_errors %}<li>{% t e %}</li>{% endfor %}
+        {% for f in form %}{% for e in f.errors %}<li><a href="#{{ f.id_for_label }}">{% t f.label %}</a>: {% t e %}</li>{% endfor %}{% endfor %}
+      </ul>
+      <p>{% t "For your security, your browser cleared the licence file: please choose it again before sending." %}</p>
+    </div>
+    {% endif %}
     <div class="card">
       <h2>{% t "Account" %}</h2>
       <p class="small">{% t "You will use these to log in to your dashboard." %}</p>
@@ -66,6 +75,16 @@
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     referrerPolicy: 'strict-origin-when-cross-origin',  // OpenStreetMap refuses tiles sent without a Referer
     attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+  var summary = document.getElementById('form-errors');
+  if (summary) { summary.scrollIntoView({ block: 'center' }); summary.focus({ preventScroll: true }); }
+  // Stop before sending if no location was chosen, instead of losing the licence file to a server error.
+  document.querySelector('form[enctype="multipart/form-data"]').addEventListener('submit', function (e) {
+    if (latI.value && lngI.value) return;
+    e.preventDefault();
+    msg.textContent = "{% t "Choose your pharmacy’s location on the map (click the map or use your current location)." as m5 %}{{ m5|escapejs }}";
+    msg.classList.add('err');
+    document.getElementById('pickmap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
   var marker = null;
   function place(lat, lng, zoom) {
     latI.value = lat.toFixed(6); lngI.value = lng.toFixed(6);
