@@ -308,8 +308,10 @@ def manifest(request):
 
 
 SERVICE_WORKER = """
-const CACHE = 'medfinder-v2';
-const SHELL = ['/offline/', '/static/core/css/site.css', '/static/core/icons/icon-192.png'];
+// The cache name below changes whenever the design (stylesheet) changes, so browsers replace their saved
+// offline page and stylesheet instead of keeping an old design forever.
+const CACHE = 'medfinder-__VERSION__';
+const SHELL = ['/offline/', '__CSS__', '__ICON__'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
@@ -342,7 +344,12 @@ self.addEventListener('fetch', e => {
 
 
 def service_worker(request):
-    response = HttpResponse(SERVICE_WORKER, content_type='application/javascript')
+    import hashlib
+    from django.templatetags.static import static
+    css, icon = static('core/css/site.css'), static('core/icons/icon-192.png')  # hashed names in production
+    version = hashlib.sha256(f'{css}|{icon}'.encode()).hexdigest()[:12]
+    script = SERVICE_WORKER.replace('__VERSION__', version).replace('__CSS__', css).replace('__ICON__', icon)
+    response = HttpResponse(script, content_type='application/javascript')
     response['Service-Worker-Allowed'] = '/'
     response['Cache-Control'] = 'no-cache'
     return response
