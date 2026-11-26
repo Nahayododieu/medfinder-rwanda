@@ -74,12 +74,51 @@ class Pharmacy(models.Model):
     last_reminder = models.CharField(max_length=40, blank=True, editable=False)
     created_at = models.DateTimeField(default=timezone.now)
 
+    # Licence verification (the administrator's checklist before showing a pharmacy to patients)
+    license_expiry = models.DateField('Licence expiry date', null=True, blank=True,
+                                      help_text='From the licence or the Rwanda FDA list. After this date the '
+                                                'pharmacy is hidden from patients automatically.')
+    check_document = models.BooleanField('The licence document is a real, readable Rwanda FDA licence', default=False)
+    check_number = models.BooleanField('The licence number on the document matches the number above', default=False)
+    check_name = models.BooleanField('The name on the document matches this pharmacy', default=False)
+    check_fda_list = models.BooleanField('The licence is on the latest Rwanda FDA list (automatic check below, '
+                                         'or confirmed with Rwanda FDA)', default=False)
+    check_location = models.BooleanField('The address and map location are in the district on the licence',
+                                         default=False)
+    check_phone = models.BooleanField('I called the pharmacy phone number and spoke to the pharmacy', default=False)
+    verification_notes = models.TextField('Verification notes', blank=True,
+                                          help_text='Who you spoke to, what you checked, anything unusual.')
+    verified_at = models.DateTimeField(null=True, blank=True, editable=False)
+    verified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+',
+                                    editable=False)
+
+    CHECK_FIELDS = ('check_document', 'check_number', 'check_name', 'check_fda_list', 'check_location', 'check_phone')
+
     class Meta:
         verbose_name_plural = 'Pharmacies'
         ordering = ['name']
 
     def __str__(self):
         return self.name
+
+    @property
+    def checklist_complete(self):
+        return all(getattr(self, f) for f in self.CHECK_FIELDS)
+
+    @property
+    def license_expired(self):
+        return bool(self.license_expiry and self.license_expiry < timezone.localdate())
+
+    def missing_for_verification(self):
+        """Plain-language reasons this pharmacy cannot be verified yet (empty list = ready)."""
+        missing = [str(self._meta.get_field(f).verbose_name) for f in self.CHECK_FIELDS if not getattr(self, f)]
+        if not self.license_document:
+            missing.insert(0, 'A licence document must be uploaded')
+        if not self.license_expiry:
+            missing.append('Enter the licence expiry date')
+        elif self.license_expired:
+            missing.append('The licence has expired')
+        return missing
 
     def save(self, *args, **kwargs):
         # The free trial starts the first time the pharmacy becomes visible to patients.
@@ -532,3 +571,22 @@ class StockAlert(models.Model):
         where = f' in {self.district}' if self.district else ''
         state = 'sent' if self.notified_at else 'waiting'
         return f'{self.medicine.name}{where} → {self.phone} ({state})'
+
+
+class FdaLicenceList(models.Model):
+    """A copy of Rwanda FDA's published "List of licensed human retail pharmacies", used for automatic checks."""
+    list_date = models.DateField('Date of the list', help_text='The month printed on the list, e.g. 1 July 2025.')
+    source_name = models.CharField('File name', max_length=200, blank=True)
+    text = models.TextField(editable=False)
+    line_count = models.PositiveIntegerField(default=0, editable=False)
+    uploaded_at = models.DateTimeField(default=timezone.now, editable=False)
+    uploaded_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+',
+                                    editable=False)
+
+    class Meta:
+        verbose_name = 'Rwanda FDA licence list'
+        verbose_name_plural = 'Rwanda FDA licence lists'
+        ordering = ['-list_date', '-uploaded_at']
+
+    def __str__(self):
+        return f'Rwanda FDA list of {self.list_date:%B %Y}'

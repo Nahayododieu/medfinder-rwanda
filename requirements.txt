@@ -6,6 +6,8 @@ truststore==0.10.5
 whitenoise==6.12.0
 # Permanent storage for uploads (used when CLOUDINARY_URL is set)
 cloudinary>=1.40
+# Reads the Rwanda FDA licence list (PDF) in the admin panel
+pypdf>=5
 # Error tracking (only active when SENTRY_DSN is set)
 sentry-sdk>=2.0
 # Production: PostgreSQL driver (used when DATABASE_URL is set) and the web server from the Procfile

@@ -28,8 +28,9 @@ def price_for(months):
 
 
 def visible_q(prefix=''):
-    """Q filter for pharmacies patients may see (verified and not hidden for non-payment)."""
+    """Q filter for pharmacies patients may see (verified, licence not expired, not hidden for non-payment)."""
     q = Q(**{f'{prefix}verified': True})
+    q &= Q(**{f'{prefix}license_expiry__isnull': True}) | Q(**{f'{prefix}license_expiry__gte': timezone.localdate()})
     if settings.HIDE_UNPAID_PHARMACIES:
         cutoff = timezone.localdate() - timedelta(days=settings.SUBSCRIPTION_GRACE_DAYS)
         q &= (Q(**{f'{prefix}trial_ends_at__isnull': True, f'{prefix}paid_until__isnull': True})

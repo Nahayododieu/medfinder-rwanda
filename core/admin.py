@@ -5,10 +5,13 @@ from django.contrib import admin, messages
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 
 from .billing import record_manual_payment, send_reminders
-from .models import (Inventory, Medicine, MedicineRequest, Order, Payment, Pharmacy, PharmacyStaff, Reservation,
+from django import forms
+
+from .licence_check import FAIL, OK, WARN, ListReadError, automatic_checks, extract_text, suggested_expiry
+from .models import (FdaLicenceList, Inventory, Medicine, MedicineRequest, Order, Payment, Pharmacy, PharmacyStaff, Reservation,
                      Review, SearchLog, SmsLog, StockAlert, StockChange, SubscriptionPayment, Testimonial)
 from .services import log_stock_change
 from .sms import send_sms
@@ -59,18 +62,77 @@ class SubscriptionPaymentInline(admin.TabularInline):
     readonly_fields = fields
 
 
+class LicenceStatusFilter(admin.SimpleListFilter):
+    title = 'licence'
+    parameter_name = 'licence'
+
+    def lookups(self, request, model_admin):
+        return [('to_check', 'Waiting for licence check'), ('expired', 'Licence expired'),
+                ('expiring', 'Expires within 30 days'), ('no_checklist', 'Verified without checklist')]
+
+    def queryset(self, request, queryset):
+        today = timezone.localdate()
+        if self.value() == 'to_check':
+            return queryset.filter(verified=False)
+        if self.value() == 'expired':
+            return queryset.filter(license_expiry__lt=today)
+        if self.value() == 'expiring':
+            return queryset.filter(license_expiry__gte=today, license_expiry__lte=today + timedelta(days=30))
+        if self.value() == 'no_checklist':
+            incomplete = Q()
+            for f in Pharmacy.CHECK_FIELDS:
+                incomplete |= Q(**{f: False})
+            return queryset.filter(verified=True).filter(incomplete)
+        return queryset
+
+
+class PharmacyAdminForm(forms.ModelForm):
+    class Meta:
+        model = Pharmacy
+        exclude = ('license_document',)  # private file: opened with the protected link instead
+
+    def clean(self):
+        data = super().clean()
+        if not data.get('verified'):
+            return data
+        if not data.get('license_expiry'):
+            data['license_expiry'] = suggested_expiry(self.instance)  # from the Rwanda FDA list, if found
+        newly = not (self.instance.pk and Pharmacy.objects.filter(pk=self.instance.pk, verified=True).exists())
+        problems = []
+        if newly:
+            problems += [str(Pharmacy._meta.get_field(f).verbose_name) for f in Pharmacy.CHECK_FIELDS if not data.get(f)]
+            if not self.instance.license_document:
+                problems.insert(0, 'A licence document must be uploaded')
+            if not data.get('license_expiry'):
+                problems.append('Enter the licence expiry date')
+        if data.get('license_expiry') and data['license_expiry'] < timezone.localdate():
+            problems.append('The licence has expired: it cannot be verified')
+        if problems:
+            raise forms.ValidationError(['This pharmacy cannot be verified yet:'] + problems)
+        return data
+
+
 @admin.register(Pharmacy)
 class PharmacyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'license_no', 'district', 'phone', 'verified_badge', 'subscription',
+    form = PharmacyAdminForm
+    list_display = ('name', 'license_no', 'district', 'phone', 'verified_badge', 'licence_status', 'subscription',
                     'coverage_end_display', 'created_at')
-    list_filter = ('verified', SubscriptionStatusFilter, 'district')
+    list_filter = ('verified', LicenceStatusFilter, SubscriptionStatusFilter, 'district')
     search_fields = ('name', 'license_no', 'phone', 'owner__username')
     actions = ('verify_pharmacies', 'unverify_pharmacies', 'record_1_month', 'record_3_months',
                'record_12_months', 'extend_trial_14', 'send_reminders_now')
     inlines = [SubscriptionPaymentInline, InventoryInline]
-    readonly_fields = ('created_at', 'map_link', 'subscription', 'license_link')
+    readonly_fields = ('created_at', 'map_link', 'subscription', 'license_link', 'automatic_checks_display',
+                       'verified_record')
     fieldsets = (
-        (None, {'fields': ('owner', 'name', 'license_no', 'license_link', 'license_document', 'verified')}),
+        (None, {'fields': ('owner', 'name', 'license_no', 'license_link')}),
+        ('Licence verification', {
+            'description': 'Before verifying: open the licence document, read the automatic checks, tick every '
+                           'item you checked yourself, then tick Verified. A pharmacy cannot be verified until '
+                           'every item is ticked and the licence expiry date is entered.',
+            'fields': ('automatic_checks_display', 'check_document', 'check_number', 'check_name', 'check_fda_list',
+                       'check_location', 'check_phone', 'license_expiry', 'verification_notes', 'verified',
+                       'verified_record')}),
         ('Subscription', {'fields': ('subscription', 'trial_ends_at', 'paid_until')}),
         ('Contact and location', {'fields': ('district', 'address', 'phone', 'latitude', 'longitude', 'map_link')}),
         ('Opening hours and insurance', {'fields': ('open_24h', 'opens_at', 'closes_at', 'insurers')}),
@@ -88,6 +150,46 @@ class PharmacyAdmin(admin.ModelAdmin):
     @admin.display(description='Verified', boolean=True, ordering='verified')
     def verified_badge(self, obj):
         return obj.verified
+
+    @admin.display(description='Automatic checks')
+    def automatic_checks_display(self, obj):
+        if not obj.pk:
+            return '-'
+        icons = {OK: ('✔', '#05634f'), WARN: ('!', '#7a5714'), FAIL: ('✘', '#b4372a')}
+        rows = format_html_join('', '<tr><td style="color:{};font-weight:800;padding:4px 8px">{}</td>'
+                                    '<td style="padding:4px 8px"><strong>{}</strong><br><span style="color:#555">{}</span>'
+                                    '</td></tr>',
+                                ((icons[st][1], icons[st][0], label, detail) for label, st, detail in automatic_checks(obj)))
+        return format_html('<table style="border-collapse:collapse;max-width:760px">{}</table>'
+                           '<p style="margin:6px 0 0;color:#555">Source: '
+                           '<a href="https://rwandafda.gov.rw" target="_blank" rel="noopener">rwandafda.gov.rw</a> '
+                           '(Rwanda FDA). Upload its newest list under “Rwanda FDA licence lists”.</p>', rows)
+
+    @admin.display(description='Licence')
+    def licence_status(self, obj):
+        if obj.license_expired:
+            return format_html('<strong style="color:#b4372a">Expired {}</strong>', obj.license_expiry.strftime('%d %b %Y'))
+        if obj.verified and not obj.checklist_complete:
+            return format_html('<span style="color:#7a5714">{}</span>', 'Verified without checklist')
+        if obj.license_expiry:
+            return format_html('<span style="color:#05634f">Valid to {}</span>', obj.license_expiry.strftime('%d %b %Y'))
+        return format_html('<span style="color:#64736e">{}</span>', 'Not checked' if not obj.verified else 'No expiry date')
+
+    @admin.display(description='Verified by')
+    def verified_record(self, obj):
+        if obj.verified_at:
+            who = obj.verified_by.get_username() if obj.verified_by else 'unknown'
+            return f'{who}, {timezone.localtime(obj.verified_at):%d %b %Y %H:%M}'
+        return '-'
+
+    def save_model(self, request, obj, form, change):
+        newly_verified = obj.verified and not (change and Pharmacy.objects.filter(pk=obj.pk, verified=True).exists())
+        if newly_verified:
+            obj.verified_at, obj.verified_by = timezone.now(), request.user
+        super().save_model(request, obj, form, change)
+        if newly_verified:
+            send_sms(obj.phone, f'MedFinder: {obj.name} is now verified and visible to patients. '
+                                f'Your free trial runs until {obj.trial_ends_at:%d %b %Y}. Keep your stock up to date.')
 
     @admin.display(description='Subscription')
     def subscription(self, obj):
@@ -150,20 +252,77 @@ class PharmacyAdmin(admin.ModelAdmin):
                                obj.latitude, obj.longitude, obj.latitude, obj.longitude)
         return '-'
 
-    @admin.action(description='Verify selected pharmacies (show in search)')
+    @admin.action(description='Verify selected pharmacies (only those with a complete licence checklist)')
     def verify_pharmacies(self, request, queryset):
-        pending = list(queryset.filter(verified=False))
-        for p in pending:
-            p.verified = True
-            p.save(update_fields=['verified'])  # also starts the free trial
+        done, skipped = [], []
+        for p in queryset.filter(verified=False):
+            if p.missing_for_verification():
+                skipped.append(p.name)
+                continue
+            p.verified, p.verified_at, p.verified_by = True, timezone.now(), request.user
+            p.save(update_fields=['verified', 'verified_at', 'verified_by'])  # also starts the free trial
             send_sms(p.phone, f'MedFinder: {p.name} is now verified and visible to patients. '
                               f'Your free trial runs until {p.trial_ends_at:%d %b %Y}. Keep your stock up to date.')
-        self.message_user(request, f'{len(pending)} pharmacy(ies) verified.', messages.SUCCESS)
+            done.append(p.name)
+        if done:
+            self.message_user(request, f'{len(done)} pharmacy(ies) verified.', messages.SUCCESS)
+        if skipped:
+            self.message_user(request, 'Not verified (licence checklist incomplete, open each pharmacy to finish it): '
+                              + ', '.join(skipped), messages.WARNING)
 
     @admin.action(description='Remove verification (hide from search)')
     def unverify_pharmacies(self, request, queryset):
         n = queryset.update(verified=False)
         self.message_user(request, f'{n} pharmacy(ies) hidden from search.', messages.WARNING)
+
+
+class FdaLicenceListForm(forms.ModelForm):
+    upload = forms.FileField(label='List file (PDF, CSV or text)',
+                             help_text='Download “List of licensed human retail pharmacies” from rwandafda.gov.rw '
+                                       '(Publications), then choose the file here.')
+
+    class Meta:
+        model = FdaLicenceList
+        fields = ('list_date',)
+
+    def clean_upload(self):
+        f = self.cleaned_data['upload']
+        if f.size > 15 * 1024 * 1024:
+            raise forms.ValidationError('The file is too large (maximum 15 MB).')
+        try:
+            self.list_text = extract_text(f.name, f.read())
+        except ListReadError as exc:
+            raise forms.ValidationError(str(exc))
+        return f
+
+
+@admin.register(FdaLicenceList)
+class FdaLicenceListAdmin(admin.ModelAdmin):
+    form = FdaLicenceListForm
+    list_display = ('__str__', 'line_count', 'source_name', 'uploaded_at', 'uploaded_by')
+    readonly_fields = ('line_count', 'uploaded_at', 'uploaded_by', 'source_name', 'preview')
+
+    def get_fields(self, request, obj=None):
+        return ('list_date', 'upload') if obj is None else ('list_date', 'source_name', 'line_count', 'uploaded_at',
+                                                            'uploaded_by', 'preview')
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj is not None:  # existing list: only the date can change
+            kwargs['form'] = forms.modelform_factory(FdaLicenceList, fields=('list_date',))
+        return super().get_form(request, obj, **kwargs)
+
+    @admin.display(description='First lines of the list (to check it was read correctly)')
+    def preview(self, obj):
+        lines = [ln for ln in obj.text.splitlines() if ln.strip()][:25]
+        return format_html('<pre style="white-space:pre-wrap;max-width:900px">{}</pre>', '\n'.join(lines))
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.text = form.list_text
+            obj.line_count = sum(1 for ln in obj.text.splitlines() if ln.strip())
+            obj.source_name = form.cleaned_data['upload'].name[:200]
+            obj.uploaded_by = request.user
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Medicine)
