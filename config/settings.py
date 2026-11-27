@@ -234,12 +234,15 @@ if _smtp_host and (os.getenv('EMAIL_PASSWORD', '') or not os.getenv('EMAIL_USER'
                 'username': os.getenv('EMAIL_USER', ''),
                 'password': os.getenv('EMAIL_PASSWORD', ''),
                 'use_tls': env_bool('EMAIL_USE_TLS', True),
+                'timeout': 15,  # seconds: a slow mail server must not freeze the page
             },
         },
     }
 else:
     MAILERS = {'default': {'BACKEND': 'django.core.mail.backends.console.EmailBackend'}}
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'MedFinder Rwanda <no-reply@medfinder.rw>')
+# Public address used in links inside emails.
+PUBLIC_HOST = os.getenv('PUBLIC_HOST', '') or os.getenv('RENDER_EXTERNAL_HOSTNAME', '') or 'medfinder-rwanda.onrender.com'
 SUPPORT_PHONE = os.getenv('SUPPORT_PHONE', '+250 788 000 000')
 SUPPORT_EMAIL = os.getenv('SUPPORT_EMAIL', 'support@medfinder.rw')
 

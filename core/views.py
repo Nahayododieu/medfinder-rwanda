@@ -30,7 +30,7 @@ from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
 
 from . import billing as billing_svc
-from . import payments
+from . import notify, payments
 from .access import OWNER, get_membership, pharmacy_required
 from .analytics import pharmacy_insights, platform_summary
 from .channels import _match_medicine, handle_incoming_sms, ussd_response
@@ -905,6 +905,22 @@ def pharmacy_profile(request):
     return render(request, 'core/profile.html', {'form': form, 'pharmacy': pharmacy})
 
 
+class NotifyingPasswordChangeView(auth_views.PasswordChangeView):
+    """Change password, then email the account owner a security notice."""
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        notify.password_changed(form.user)
+        return response
+
+
+class NotifyingPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        notify.password_changed(form.user)
+        return response
+
+
 def _translate_register_form(form, request):
     from .i18n_text import translate
     from .utils import DISTRICT_CHOICES
@@ -921,7 +937,7 @@ def register(request):
             with transaction.atomic():
                 user = User.objects.create_user(username=data['username'], password=data['password'],
                                                 email=data['email'])
-                Pharmacy.objects.create(
+                pharmacy = Pharmacy.objects.create(
                     owner=user,
                     name=data['name'],
                     license_no=data['license_no'],
@@ -933,6 +949,7 @@ def register(request):
                     longitude=data['longitude'],
                     verified=False,
                 )
+                notify.pharmacy_registered(pharmacy)  # welcome email + admin alert, after saving
             messages.success(request, 'Registration received. Log in to add your stock. '
                                       'Your pharmacy appears in search once an administrator verifies your license.')
             return redirect('login')

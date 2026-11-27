@@ -1,0 +1,6 @@
+Good news: {{ pharmacy.name }} is now verified and visible to patients on MedFinder Rwanda.
+
+Your free trial runs until {{ pharmacy.trial_ends_at|date:"d M Y" }}.
+Keep your medicines, prices and opening hours up to date so patients find you: {{ dashboard_url }}
+
+{{ business_name }}

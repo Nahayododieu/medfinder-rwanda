@@ -1,0 +1,9 @@
+A new pharmacy registered and is waiting for licence verification.
+
+Name: {{ pharmacy.name }}
+District: {{ pharmacy.district }}
+Licence number: {{ pharmacy.license_no }}
+Phone: {{ pharmacy.phone }}
+Licence document uploaded: {% if pharmacy.license_document %}yes{% else %}no{% endif %}
+
+Open it in the admin panel to check the licence: {{ admin_url }}

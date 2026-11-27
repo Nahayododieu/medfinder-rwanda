@@ -53,17 +53,22 @@ urlpatterns = [
     path('login/verify/', views.login_verify, name='login_verify'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('register/', views.register, name='register'),
-    path('password/change/', auth_views.PasswordChangeView.as_view(
+    path('password/change/', views.NotifyingPasswordChangeView.as_view(
         template_name='core/password_form.html', success_url='/password/change/done/'), name='password_change'),
     path('password/change/done/', auth_views.PasswordChangeDoneView.as_view(
         template_name='core/password_done.html'), name='password_change_done'),
     path('password/reset/', ratelimit('reset', settings.RATE_LIMIT_REGISTER)(auth_views.PasswordResetView.as_view(
         template_name='core/password_form.html', email_template_name='core/email/password_reset.txt',
+        html_email_template_name='core/email/password_reset.html',
+        extra_email_context={'business_name': settings.BUSINESS_NAME, 'support_email': settings.SUPPORT_EMAIL,
+                             'support_phone': settings.SUPPORT_PHONE,
+                             'site_url': 'https://' + settings.PUBLIC_HOST,
+                             'subject': 'Reset your MedFinder Rwanda password'},
         subject_template_name='core/email/password_reset_subject.txt', success_url='/password/reset/sent/')),
         name='password_reset'),
     path('password/reset/sent/', auth_views.PasswordResetDoneView.as_view(
         template_name='core/password_done.html'), name='password_reset_done'),
-    path('password/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+    path('password/reset/<uidb64>/<token>/', views.NotifyingPasswordResetConfirmView.as_view(
         template_name='core/password_form.html', success_url='/password/reset/complete/'),
         name='password_reset_confirm'),
     path('password/reset/complete/', auth_views.PasswordResetCompleteView.as_view(

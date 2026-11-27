@@ -26,6 +26,23 @@ class Command(BaseCommand):
                               'Set DJANGO_ADMIN_URL to a secret path to hide it.')
         else:
             self.stdout.write('ADMIN CHECK: the admin panel is at a secret address (DJANGO_ADMIN_URL); /admin/ is closed.')
+        mailer = settings.MAILERS['default']
+        if mailer['BACKEND'].endswith('console.EmailBackend'):
+            self.stdout.write('EMAIL CHECK: emails are NOT sent (EMAIL_HOST or EMAIL_PASSWORD missing): '
+                              'password resets and notifications will not arrive.')
+        else:
+            import smtplib
+            o = mailer['OPTIONS']
+            try:
+                server = smtplib.SMTP(o['host'], o['port'], timeout=15)
+                if o.get('use_tls'):
+                    server.starttls()
+                if o.get('username'):
+                    server.login(o['username'], o['password'])
+                server.quit()
+                self.stdout.write(f"EMAIL CHECK: email login OK ({o['host']}, from {settings.DEFAULT_FROM_EMAIL})")
+            except Exception as exc:  # the message never contains the password
+                self.stdout.write(f'EMAIL CHECK: email login FAILED: {type(exc).__name__}: {str(exc)[:160]}')
         backend = settings.STORAGES['default']['BACKEND']
         if backend.endswith('CloudinaryStorage'):
             cloud = os.environ.get('CLOUDINARY_URL', '').rsplit('@', 1)[-1]

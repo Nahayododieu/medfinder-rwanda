@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ subject }}</title></head>
+<body style="margin:0;padding:0;background:#e9f0eb;font-family:Arial,Helvetica,sans-serif;color:#1a1f1c">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e9f0eb;padding:24px 12px">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#f5f8f6;border:1px solid #b9c8be;border-radius:14px;overflow:hidden">
+  <tr><td style="background:#1b7f4b;padding:18px 24px">
+    <span style="display:inline-block;width:30px;height:30px;line-height:30px;text-align:center;border-radius:8px;background:#f5f8f6;color:#1b7f4b;font-weight:bold;font-size:20px;vertical-align:middle">+</span>
+    <span style="color:#f5f8f6;font-size:18px;font-weight:bold;vertical-align:middle;margin-left:8px">{{ business_name }}</span>
+  </td></tr>
+  <tr><td style="padding:26px 24px 8px;font-size:15px;line-height:1.6">
+    {% block body %}{% endblock %}
+  </td></tr>
+  <tr><td style="padding:16px 24px 22px;border-top:1px solid #dfe9e2;font-size:12px;line-height:1.5;color:#4a5750">
+    {{ business_name }} · <a href="{{ site_url }}" style="color:#156b3e">{{ site_url|cut:"https://" }}</a><br>
+    Questions? {{ support_phone }} · <a href="mailto:{{ support_email }}" style="color:#156b3e">{{ support_email }}</a>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>

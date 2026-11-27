@@ -13,6 +13,7 @@ from django import forms
 from .licence_check import FAIL, OK, WARN, ListReadError, automatic_checks, extract_text, suggested_expiry
 from .models import (FdaLicenceList, Inventory, Medicine, MedicineRequest, Order, Payment, Pharmacy, PharmacyStaff, Reservation,
                      Review, SearchLog, SmsLog, StockAlert, StockChange, SubscriptionPayment, Testimonial)
+from . import notify
 from .services import log_stock_change
 from .sms import send_sms
 
@@ -190,6 +191,7 @@ class PharmacyAdmin(admin.ModelAdmin):
         if newly_verified:
             send_sms(obj.phone, f'MedFinder: {obj.name} is now verified and visible to patients. '
                                 f'Your free trial runs until {obj.trial_ends_at:%d %b %Y}. Keep your stock up to date.')
+            notify.pharmacy_verified(obj)
 
     @admin.display(description='Subscription')
     def subscription(self, obj):
@@ -263,6 +265,7 @@ class PharmacyAdmin(admin.ModelAdmin):
             p.save(update_fields=['verified', 'verified_at', 'verified_by'])  # also starts the free trial
             send_sms(p.phone, f'MedFinder: {p.name} is now verified and visible to patients. '
                               f'Your free trial runs until {p.trial_ends_at:%d %b %Y}. Keep your stock up to date.')
+            notify.pharmacy_verified(p)
             done.append(p.name)
         if done:
             self.message_user(request, f'{len(done)} pharmacy(ies) verified.', messages.SUCCESS)

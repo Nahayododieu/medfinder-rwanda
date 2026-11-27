@@ -1,0 +1,8 @@
+{% extends 'core/email/base.html' %}
+{% block body %}
+<h1 style="margin:0 0 12px;font-size:21px">Your pharmacy is live</h1>
+<p>Good news: <strong>{{ pharmacy.name }}</strong> is now verified and visible to patients on MedFinder Rwanda.</p>
+<p>Your free trial runs until <strong>{{ pharmacy.trial_ends_at|date:"d M Y" }}</strong>.</p>
+<p>Keep your medicines, prices and opening hours up to date so patients find you.</p>
+{% with url=dashboard_url label="Open your dashboard" %}{% include 'core/email/_button.html' %}{% endwith %}
+{% endblock %}

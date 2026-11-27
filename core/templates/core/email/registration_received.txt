@@ -1,0 +1,12 @@
+Hello,
+
+Thank you for registering {{ pharmacy.name }} ({{ pharmacy.district }}) on MedFinder Rwanda.
+
+What happens next:
+1. Our team checks your Rwanda FDA licence (number {{ pharmacy.license_no }}). We may call you on {{ pharmacy.phone }}.
+2. When it is verified, your pharmacy appears to patients and your free trial starts. We will email and SMS you.
+3. Meanwhile, log in and add your medicines and prices: {{ login_url }}
+
+Your username is: {{ pharmacy.owner.username }}
+
+{{ business_name }}
